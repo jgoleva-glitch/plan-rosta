@@ -656,24 +656,22 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
       <p class="hint">Хранит дневник отдельным файлом в твоём Яндекс.Диске и подхватывает его на телефоне и компьютере (с объединением, без потерь). Пока не вставишь свой токен — синхронизация выключена, и все записи остаются только на этом устройстве.</p>
       <div id="sync-status" class="sync-status">Синхронизация выключена</div>
       <div style="margin-top:12px">
-        <input type="password" id="yd-token" placeholder="Вставь сюда OAuth-токен Яндекс.Диска" autocomplete="off">
-        <input type="text" id="yd-path" placeholder="Путь к файлу (по умолчанию app:/tracker.json)" style="margin-top:8px">
+        <input type="text" id="yd-worker" placeholder="Адрес Worker'а (https://…workers.dev)" autocomplete="off">
+        <input type="password" id="yd-secret" placeholder="Секрет синхронизации (тот, что в Worker)" autocomplete="off" style="margin-top:8px">
       </div>
       <div class="field-row" style="margin-top:10px">
         <button class="tbtn" id="yd-toggle">Включить синхронизацию</button>
         <button class="tbtn ghost sm" id="yd-now">Синхронизировать сейчас</button>
       </div>
       <details class="yd-help">
-        <summary>Как получить токен (один раз, ~5 минут)</summary>
+        <summary>Как настроить (один раз, ~15 минут)</summary>
         <ol>
-          <li>Открой <a href="https://oauth.yandex.ru/" target="_blank" rel="noopener">oauth.yandex.ru</a> и нажми «Создать приложение».</li>
-          <li>Платформа — «Веб-сервисы». В поле Redirect URI вставь <code>https://oauth.yandex.ru/verification_code</code>.</li>
-          <li>В доступах найди «Яндекс.Диск REST API» и выбери <b>«Доступ к папке приложения»</b> (cloud_api:disk.app_folder).</li>
-          <li>Создай приложение и скопируй его <b>ClientID</b>.</li>
-          <li>Открой в браузере ссылку (подставь свой ClientID):<br><code>https://oauth.yandex.ru/authorize?response_type=token&client_id=ТВОЙ_CLIENTID</code></li>
-          <li>Разреши доступ — откроется страница с <b>токеном</b>. Скопируй его и вставь в поле выше, затем нажми «Включить синхронизацию».</li>
+          <li>Получи <b>OAuth-токен Яндекс.Диска</b>: на <a href="https://oauth.yandex.ru/" target="_blank" rel="noopener">oauth.yandex.ru</a> создай приложение (платформа «Веб-сервисы», Redirect URI <code>https://oauth.yandex.ru/verification_code</code>, доступ «к папке приложения»), скопируй ClientID, открой <code>https://oauth.yandex.ru/authorize?response_type=token&client_id=ТВОЙ_CLIENTID</code>, разреши доступ — получишь токен.</li>
+          <li>Зайди на <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener">dash.cloudflare.com</a> (заведи бесплатный аккаунт) → раздел <b>Workers &amp; Pages</b> → <b>Create → Create Worker</b> → дай имя (напр. <code>yd-sync</code>) → <b>Deploy</b>.</li>
+          <li>Нажми <b>Edit code</b>, удали весь пример и вставь код из файла <code>worker.js</code> (я его дала). Впиши в начале свой токен Яндекса, придумай и впиши <b>секрет</b>, проверь, что адрес страницы указан верно. Нажми <b>Deploy</b>.</li>
+          <li>Скопируй адрес Worker'а (вида <code>https://yd-sync.твой-логин.workers.dev</code>) и вставь в верхнее поле выше. В нижнее поле впиши тот же <b>секрет</b>. Нажми «Включить синхронизацию».</li>
         </ol>
-        <p class="hint">Совет: выбирай именно «папку приложения» — тогда дневник лежит в отдельной папке «Приложения/…», и токен не имеет доступа к остальному Диску. Токен и этот файл держи в тайне — это ключ к твоим записям. Если появится ошибка про CORS, значит браузер блокирует запрос из локального файла — тогда напиши мне, подскажу, как открыть файл через простой локальный сервер.</p>
+        <p class="hint">Так токен Яндекса хранится только в Worker'е, а не в странице — это безопаснее. Данные лежат в твоём Яндекс.Диске. Секрет нужен, чтобы к твоему Worker'у не обращался никто чужой.</p>
       </details>
     </div>
 
@@ -1034,35 +1032,27 @@ if(navToggle&&navbar){
   function refreshAll(){cr.value=data.columns.real;co.value=data.columns.role;bd.value=data.boundaries;renderThoughts();renderDots();renderStats();renderWeek();}
   function hhmm(d){return pad(d.getHours())+':'+pad(d.getMinutes());}
 
-  const SKEY='yulia_sync_cfg_v1';
+  const SKEY='yulia_sync_cfg_v2';
   let sync={};try{sync=JSON.parse(localStorage.getItem(SKEY))||{};}catch(e){sync={};}
-  sync.path=sync.path||'app:/tracker.json';
   const saveCfg=()=>{try{localStorage.setItem(SKEY,JSON.stringify(sync));}catch(e){}};
   function setStatus(kind,msg){const el=$('sync-status');if(!el)return;el.className='sync-status'+(kind?' '+kind:'');el.textContent=msg;}
 
-  const YD='https://cloud-api.yandex.net/v1/disk';
-  async function ydHref(kind){
-    const url=YD+'/resources/'+kind+'?path='+encodeURIComponent(sync.path)+(kind==='upload'?'&overwrite=true':'');
-    const r=await fetch(url,{headers:{Authorization:'OAuth '+sync.token}});
-    if(r.status===404)return{notfound:true};
-    if(r.status===401)throw new Error('токен не принят (401)');
-    if(!r.ok)throw new Error('API '+r.status);
-    return await r.json();
-  }
+  function base(){return (sync.worker||'').replace(/\/+$/,'');}
   async function pullRemote(){
-    const h=await ydHref('download');if(h.notfound)return null;
-    const r=await fetch(h.href);if(!r.ok)throw new Error('скачивание '+r.status);
+    const r=await fetch(base()+'/load',{headers:{'X-Sync-Secret':sync.secret||''}});
+    if(r.status===403)throw new Error('секрет не совпадает (403)');
+    if(!r.ok)throw new Error('load '+r.status);
     const txt=await r.text();try{const p=JSON.parse(txt);return p&&p.data?p.data:p;}catch(e){return null;}
   }
   async function pushRemote(){
-    const h=await ydHref('upload');
     const payload=JSON.stringify({_type:'yulia_tracker_backup',_version:1,exported:new Date().toISOString(),data:data});
-    const r=await fetch(h.href,{method:'PUT',body:payload,headers:{'Content-Type':'application/json'}});
-    if(!r.ok)throw new Error('загрузка '+r.status);
+    const r=await fetch(base()+'/save',{method:'POST',headers:{'Content-Type':'application/json','X-Sync-Secret':sync.secret||''},body:payload});
+    if(r.status===403)throw new Error('секрет не совпадает (403)');
+    if(!r.ok)throw new Error('save '+r.status);
   }
   let syncing=false;
   async function doSync(){
-    if(!sync.enabled||!sync.token)return;
+    if(!sync.enabled||!sync.worker)return;
     if(syncing)return;syncing=true;setStatus('sync','Синхронизация…');
     try{
       const remote=await pullRemote();
@@ -1070,29 +1060,29 @@ if(navToggle&&navbar){
       await pushRemote();
       sync.lastSync=Date.now();saveCfg();
       setStatus('ok','Синхронизировано '+hhmm(new Date()));
-    }catch(e){setStatus('err','Ошибка: '+e.message+(/Failed to fetch|NetworkError/i.test(e.message)?' — вероятно, CORS из локального файла':''));}
+    }catch(e){setStatus('err','Ошибка: '+e.message+(/Failed to fetch|Load failed|NetworkError/i.test(e.message)?' — проверь адрес Worker\u2019а и что он опубликован':''));}
     finally{syncing=false;}
   }
   let pushTimer;
-  function schedulePush(){if(!sync.enabled||!sync.token)return;clearTimeout(pushTimer);pushTimer=setTimeout(()=>{doSync();},1600);}
+  function schedulePush(){if(!sync.enabled||!sync.worker)return;clearTimeout(pushTimer);pushTimer=setTimeout(()=>{doSync();},1600);}
 
   function updateSyncUI(){
-    $('yd-token').value=sync.token||'';$('yd-path').value=sync.path||'app:/tracker.json';
+    $('yd-worker').value=sync.worker||'';$('yd-secret').value=sync.secret||'';
     $('yd-toggle').textContent=sync.enabled?'Выключить синхронизацию':'Включить синхронизацию';
     if(sync.enabled)setStatus(sync.lastSync?'ok':'', sync.lastSync?('Синхронизировано '+hhmm(new Date(sync.lastSync))):'Синхронизация включена');
     else setStatus('','Синхронизация выключена');
   }
   $('yd-toggle').onclick=async()=>{
     if(sync.enabled){sync.enabled=false;saveCfg();updateSyncUI();return;}
-    const tok=$('yd-token').value.trim();
-    if(!tok){alert('Сначала вставь OAuth-токен Яндекс.Диска (инструкция ниже).');return;}
-    sync.token=tok;sync.path=$('yd-path').value.trim()||'app:/tracker.json';sync.enabled=true;saveCfg();updateSyncUI();
+    const w=$('yd-worker').value.trim();
+    if(!w){alert('Сначала вставь адрес Worker\u2019а (инструкция ниже).');return;}
+    sync.worker=w;sync.secret=$('yd-secret').value.trim();sync.enabled=true;saveCfg();updateSyncUI();
     await doSync();
   };
   $('yd-now').onclick=()=>{if(!sync.enabled){setStatus('','Сначала включи синхронизацию');return;}doSync();};
 
   renderThoughts();renderDots();renderStats();renderWeek();updateSyncUI();
-  if(sync.enabled&&sync.token)setTimeout(doSync,500);
+  if(sync.enabled&&sync.worker)setTimeout(doSync,500);
 })();
 </script>
 </body>
