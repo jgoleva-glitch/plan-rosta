@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="План роста">
+<meta name="theme-color" content="#2A3356">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Юля · Разбор и план</title>
+<style>
+:root{
+  --bg:#F5F3EE;
+  --card:#FFFFFF;
+  --card-soft:#EFECE5;
+  --navy:#2A3356;
+  --navy-2:#353F66;
+  --coral:#E86B42;
+  --coral-soft:#F7DFD4;
+  --gold:#F3BE4E;
+  --gold-soft:#FBEECB;
+  --blue:#4C6BE6;
+  --blue-soft:#DCE2FB;
+  --lav:#A98FE0;
+  --lav-soft:#EAE2FA;
+  --ink:#20222E;
+  --muted:#6C6F7E;
+  --line:#E6E2D9;
+  --radius:26px;
+  --radius-lg:34px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 22px 120px}
+.disp{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:-.015em;line-height:1.08}
+
+/* ambient blobs */
+.atmos{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5}
+.b1{width:420px;height:420px;background:radial-gradient(circle,#F5C14E,#E86B42);top:-140px;right:-120px}
+.b2{width:380px;height:380px;background:radial-gradient(circle,#A98FE0,#4C6BE6);bottom:8%;left:-160px;opacity:.35}
+.wrap,.topbar{position:relative;z-index:1}
+
+/* top nav pill */
+.topbar{position:sticky;top:14px;z-index:20;display:flex;justify-content:center;margin:18px 0 30px}
+.nav{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.7);padding:7px;border-radius:24px;box-shadow:0 10px 34px rgba(42,51,86,.12);flex-wrap:wrap;justify-content:center}
+.nav a{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;
+  padding:9px 15px;border-radius:16px;transition:.22s;white-space:nowrap}
+.nav a:hover{color:var(--ink);background:var(--card-soft)}
+.nav a.act{background:var(--navy);color:#fff}
+
+/* dropdown */
+.dd{position:relative}
+.dd-btn{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;font-weight:500;color:var(--muted);
+  background:none;border:none;cursor:pointer;padding:9px 14px;border-radius:16px;transition:.22s;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:5px}
+.dd-btn:hover,.dd.open .dd-btn,.dd-btn.act{color:var(--ink);background:var(--card-soft)}
+.dd-btn.act{background:var(--navy);color:#fff}
+.caret{font-size:10px;transition:transform .22s;opacity:.7}
+.dd.open .caret{transform:rotate(180deg)}
+.dd-menu{position:absolute;top:calc(100% + 8px);left:0;min-width:184px;background:rgba(255,255,255,.98);
+  backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.8);border-radius:18px;padding:6px;
+  box-shadow:0 16px 40px rgba(42,51,86,.18);display:flex;flex-direction:column;gap:2px;z-index:40;
+  opacity:0;visibility:hidden;transform:translateY(-6px);transition:.2s}
+.dd:hover .dd-menu,.dd.open .dd-menu{opacity:1;visibility:visible;transform:none}
+.dd-menu a{padding:10px 14px;border-radius:12px;font-size:14px;color:var(--muted);text-decoration:none;white-space:nowrap}
+.dd-menu a:hover{background:var(--card-soft);color:var(--ink)}
+.dd-menu a.act{background:var(--lav-soft);color:#6B4BB0}
+.navbar{display:flex;justify-content:center;position:relative}
+.nav-toggle{display:none;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;
+  color:var(--navy);background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.7);
+  align-items:center;gap:9px;padding:12px 20px;border-radius:20px;box-shadow:0 10px 34px rgba(42,51,86,.14);cursor:pointer}
+.nav-toggle .burger{font-size:17px;line-height:1}
+
+@media(max-width:640px){
+  .nav-toggle{display:inline-flex}
+  .nav{display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);
+    flex-direction:column;align-items:stretch;width:min(320px,88vw);padding:10px;gap:2px;border-radius:22px;flex-wrap:nowrap}
+  .navbar.open .nav{display:flex}
+  .nav a{padding:12px 16px;border-radius:14px;font-size:15px;text-align:left}
+  .dd{position:static}
+  .dd-btn{width:100%;justify-content:flex-start;padding:12px 16px;font-size:15px;font-weight:600;color:var(--ink)}
+  .dd-btn .caret{display:none}
+  .dd-menu{position:static;opacity:1;visibility:visible;transform:none;box-shadow:none;border:none;
+    background:transparent;backdrop-filter:none;padding:0 0 2px 0;min-width:0;margin:0 0 2px 14px;
+    border-left:2px solid var(--line);border-radius:0}
+  .dd:hover .dd-menu,.dd.open .dd-menu{transform:none}
+  .dd-menu a{padding:10px 14px;font-size:14px}
+}
+
+/* hero */
+.hero{background:var(--navy);border-radius:var(--radius-lg);padding:44px 40px 40px;color:#fff;
+  position:relative;overflow:hidden;box-shadow:0 26px 60px rgba(42,51,86,.28)}
+.hero .orb{position:absolute;right:-70px;bottom:-90px;width:340px;height:340px;border-radius:50%;
+  background:conic-gradient(from 200deg,#F3BE4E,#E86B42,#A98FE0,#4C6BE6,#F3BE4E);filter:blur(6px);opacity:.9}
+.hero-inner{position:relative;z-index:2;max-width:560px}
+.eyebrow{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:#C9CEE6;font-weight:600;margin:0 0 14px}
+.hello{font-size:14px;color:#B9BFDC;margin:0 0 6px;letter-spacing:.02em}
+.hero h1{font-size:52px;font-weight:700;margin:0 0 18px}
+.hero p.sub{font-size:16px;color:#CDD2E8;margin:0 0 24px;max-width:440px}
+.meta-pills{display:flex;gap:8px;flex-wrap:wrap}
+.meta-pills span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);
+  padding:8px 14px;border-radius:14px;font-size:13px;color:#E7EAF6}
+
+/* section shell */
+.section{margin-top:34px}
+.sec-head{display:flex;align-items:center;gap:14px;margin:0 0 16px;padding-left:4px}
+.sec-num{width:40px;height:40px;flex:none;border-radius:14px;display:grid;place-items:center;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;font-size:17px;color:#fff}
+.sec-head h2{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:27px;font-weight:600;margin:0;letter-spacing:-.02em}
+.card{background:var(--card);border-radius:var(--radius);padding:30px 32px;box-shadow:0 12px 34px rgba(42,51,86,.07)}
+.card + .card{margin-top:16px}
+.card p{margin:0 0 14px}
+.card p:last-child{margin-bottom:0}
+strong{font-weight:600}
+.k-navy{color:var(--navy);font-weight:600}
+.k-coral{color:var(--coral);font-weight:600}
+.k-blue{color:var(--blue);font-weight:600}
+.k-lav{color:#7F5FC4;font-weight:600}
+
+.subhead{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;font-size:19px;margin:22px 0 8px;color:var(--ink)}
+.card > .subhead:first-child{margin-top:0}
+
+/* house-shape stat block (chart architecture) */
+.house{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:6px}
+.house .cell{border-radius:20px;padding:16px 18px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;min-height:112px}
+.house .big{grid-row:span 2;min-height:auto}
+.pct{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:700;font-size:26px;line-height:1}
+.cell .lbl{font-size:13px;opacity:.92;font-weight:500}
+@media(max-width:620px){.house{grid-template-columns:1fr 1fr}.house .big{grid-row:auto}}
+
+/* practice / notification cards */
+.notif{display:flex;align-items:stretch;gap:0;background:var(--card-soft);border-radius:22px;overflow:hidden;margin-top:12px}
+.notif .body{padding:16px 18px;flex:1}
+.notif .tag{font-size:11px;letter-spacing:.12em;font-weight:600;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.notif .ttl{font-weight:600;font-size:15.5px;margin:0 0 4px;color:var(--ink)}
+.notif .txt{font-size:14px;color:#565968;margin:0}
+.notif .av{width:74px;flex:none;display:grid;place-items:center;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;font-size:22px;color:#fff}
+
+/* month cards */
+.month{background:var(--card);border-radius:var(--radius);padding:24px 26px;box-shadow:0 12px 30px rgba(42,51,86,.06);margin-top:16px}
+.month-top{display:flex;align-items:center;gap:13px;margin-bottom:6px}
+.m-badge{width:34px;height:34px;flex:none;border-radius:12px;display:grid;place-items:center;color:#fff;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:700;font-size:15px}
+.month h3{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:19px;font-weight:600;margin:0}
+.m-focus{font-size:13.5px;color:var(--muted);margin:0 0 14px;padding-left:47px}
+.row{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);align-items:flex-start}
+.row:first-of-type{border-top:1px solid var(--line)}
+.chip{flex:none;font-size:12px;font-weight:600;padding:5px 11px;border-radius:11px;min-width:76px;text-align:center}
+.row p{margin:2px 0 0;font-size:14.5px;color:#3d404e;line-height:1.5}
+.c-kpt{background:var(--lav-soft);color:#6B4BB0}
+.c-body{background:var(--blue-soft);color:#3550C4}
+.c-work{background:var(--coral-soft);color:#C24A22}
+.c-me{background:var(--gold-soft);color:#9A7213}
+
+/* callouts */
+.call{border-radius:22px;padding:22px 24px;margin-top:16px}
+.call h4{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:16px;margin:0 0 10px;font-weight:600}
+.call ul{margin:0;padding-left:2px;list-style:none}
+.call li{position:relative;padding-left:20px;margin:7px 0;font-size:15px}
+.call li::before{content:"";position:absolute;left:0;top:9px;width:8px;height:8px;border-radius:50%}
+.call.risk{background:var(--coral-soft)}
+.call.risk h4{color:#B84420}
+.call.risk li::before{background:#E86B42}
+.call.res{background:var(--blue-soft)}
+.call.res h4{color:#2C44B0}
+.call.res li::before{background:#4C6BE6}
+.call.tip{background:var(--gold-soft)}
+.call.tip h4{color:#8A6410}
+.call.tip li::before{background:var(--gold)}
+
+/* coaching accent card */
+.coach{background:linear-gradient(135deg,#2A3356,#3A3060);color:#fff;border-radius:var(--radius);padding:30px 32px;box-shadow:0 20px 46px rgba(42,51,86,.24);position:relative;overflow:hidden}
+.coach .glow{position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,#E86B42,transparent 70%);opacity:.55}
+.coach h3{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:22px;font-weight:600;margin:0 0 12px;position:relative}
+.coach p{color:#DDE0F0;position:relative;margin:0 0 12px}
+.coach p:last-child{margin-bottom:0}
+.coach .hl{color:#F3BE4E;font-weight:600}
+
+/* step list */
+.steps{counter-reset:s;margin-top:8px}
+.step{display:flex;gap:16px;padding:15px 0;border-top:1px solid var(--line)}
+.step:first-child{border-top:none}
+.step .n{counter-increment:s;flex:none;width:34px;height:34px;border-radius:12px;background:var(--navy);color:#fff;
+  display:grid;place-items:center;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;font-size:15px}
+.step .n::before{content:counter(s)}
+.step .st{font-weight:600;font-size:15.5px;margin:5px 0 3px}
+.step .sd{font-size:14.5px;color:#565968;margin:0}
+
+.closing{text-align:center;margin-top:40px;padding:0 20px}
+.closing p{font-size:15px;color:var(--muted);font-style:italic}
+
+/* ===== TRACKER ===== */
+.trk-intro{background:linear-gradient(135deg,#FBEECB,#F7DFD4);border-radius:var(--radius);padding:24px 28px;margin-bottom:16px}
+.trk-intro p{margin:0 0 14px;font-size:15px;color:#5a4a2e}
+.trk-intro p:last-child{margin:0}
+.trk-stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:rgba(255,255,255,.7);border-radius:16px;padding:12px 18px;min-width:120px}
+.stat .num{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:700;font-size:26px;line-height:1;color:var(--navy)}
+.stat .cap{font-size:12px;color:#7a6a4e;margin-top:3px;letter-spacing:.02em}
+
+.trk{background:var(--card);border-radius:var(--radius);padding:26px 28px;box-shadow:0 12px 34px rgba(42,51,86,.07);
+  border-left:7px solid var(--line);margin-top:16px}
+.trk.kpt{border-left-color:var(--lav)}
+.trk.body{border-left-color:var(--blue)}
+.trk.work{border-left-color:var(--coral)}
+.trk.me{border-left-color:var(--gold)}
+.trk-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.trk-tag{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:10px}
+.trk.kpt .trk-tag{background:var(--lav-soft);color:#6B4BB0}
+.trk.body .trk-tag{background:var(--blue-soft);color:#3550C4}
+.trk.work .trk-tag{background:var(--coral-soft);color:#C24A22}
+.trk.me .trk-tag{background:var(--gold-soft);color:#9A7213}
+.trk h3{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:20px;font-weight:600;margin:0}
+.trk .hint{font-size:14px;color:var(--muted);margin:0 0 14px}
+
+textarea,input[type=text],input[type=password]{width:100%;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;
+  color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:16px;padding:13px 15px;
+  resize:vertical;line-height:1.55;transition:border-color .2s}
+textarea:focus,input[type=text]:focus,input[type=password]:focus{outline:none;border-color:var(--navy)}
+textarea{min-height:82px}
+.field-row{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.today{font-size:13px;color:var(--muted);background:var(--card-soft);padding:6px 12px;border-radius:12px;white-space:nowrap}
+
+.tbtn{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#fff;background:var(--navy);
+  border:none;border-radius:14px;padding:11px 20px;cursor:pointer;transition:.18s}
+.tbtn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(42,51,86,.22)}
+.tbtn.ghost{background:transparent;color:var(--muted);border:1.5px solid var(--line)}
+.tbtn.ghost:hover{color:var(--ink);box-shadow:none;background:var(--card-soft)}
+.tbtn.sm{padding:7px 13px;font-size:13px}
+
+.entries{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.entry{background:var(--card-soft);border-radius:16px;padding:13px 16px;position:relative}
+.entry .e-date{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.03em;margin-bottom:5px}
+.entry .e-text{font-size:14.5px;color:#33353f;white-space:pre-wrap;line-height:1.5}
+.entry .e-del{position:absolute;top:11px;right:12px;background:none;border:none;color:#B4A99A;cursor:pointer;font-size:17px;line-height:1;padding:2px 5px;border-radius:8px}
+.entry .e-del:hover{color:var(--coral);background:rgba(232,107,66,.1)}
+.empty{font-size:14px;color:#A89E90;font-style:italic;margin-top:12px}
+
+.dots{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.dot{width:26px;height:26px;border-radius:9px;background:var(--card-soft);display:grid;place-items:center;
+  font-size:11px;color:#B4A99A;font-weight:600}
+.dot.on{background:var(--blue);color:#fff}
+.saved-flag{font-size:12.5px;color:#5B8B72;margin-left:8px;opacity:0;transition:opacity .3s}
+.saved-flag.show{opacity:1}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.two-col label{font-size:13px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+@media(max-width:600px){.two-col{grid-template-columns:1fr}}
+
+.trk-foot{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;align-items:center}
+
+/* weekly summary */
+.trk.sum{border-left-color:var(--navy);background:linear-gradient(180deg,#ffffff,#faf9f5)}
+.wk-nav{display:flex;align-items:center;gap:10px;margin:4px 0 16px}
+.wk-nav .tbtn{padding:6px 14px;font-size:16px;line-height:1}
+.wk-label{font-weight:600;font-size:15px;color:var(--navy);min-width:170px;text-align:center}
+.wk-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.wk-stats .st2{background:var(--card-soft);border-radius:12px;padding:8px 14px;font-size:13px;color:#565968}
+.wk-stats .st2 b{font-weight:700;color:var(--navy);font-size:15px;margin-right:3px}
+.themes{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 4px}
+.theme{background:var(--lav-soft);color:#6B4BB0;font-size:12.5px;font-weight:600;padding:5px 11px;border-radius:11px}
+.themes-lbl{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin:16px 0 0}
+.wk-day{margin-top:14px}
+.wk-day h5{font-size:13px;color:var(--muted);margin:0 0 4px;font-weight:600;letter-spacing:.02em}
+.wk-item{font-size:14.5px;color:#33353f;padding:7px 0;border-bottom:1px dashed var(--line);line-height:1.5}
+.wk-item:last-child{border-bottom:none}
+.wk-item .tm{color:#A89E90;font-size:12.5px;margin-right:8px}
+.wk-reflect{background:var(--gold-soft);border-radius:16px;padding:15px 17px;margin-top:16px;font-size:14px;color:#5a4a2e;line-height:1.55}
+.wk-reflect .r-lbl{font-weight:700;display:block;margin-bottom:7px;color:#8A6410}
+.wk-reflect p{margin:0 0 8px}.wk-reflect p:last-child{margin:0}
+.wk-empty{font-size:14px;color:#A89E90;font-style:italic;padding:10px 0}
+
+/* sync panel */
+input[type=password]{width:100%;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;
+  color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:16px;padding:13px 15px;transition:border-color .2s}
+input[type=password]:focus{outline:none;border-color:var(--navy)}
+.sync-status{font-size:13.5px;padding:9px 13px;border-radius:12px;background:var(--card-soft);color:var(--muted);display:inline-block;margin-top:4px}
+.sync-status.ok{background:#E9F1EC;color:#3E7A5A}
+.sync-status.err{background:#F7E0DA;color:#B8412A}
+.sync-status.sync{background:var(--gold-soft);color:#8A6410}
+.yd-help{margin-top:16px;font-size:14px}
+.yd-help summary{cursor:pointer;font-weight:600;color:var(--navy);padding:4px 0}
+.yd-help ol{margin:10px 0;padding-left:20px}
+.yd-help li{margin:7px 0;line-height:1.5}
+.yd-help code{background:var(--card-soft);padding:2px 6px;border-radius:6px;font-size:12.5px;word-break:break-all}
+.yd-help a{color:var(--blue)}
+
+/* sync */
+.trk.sync{border-left-color:#5B8B72}
+.sync-status{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:600;margin:2px 0 8px;color:#3d404e}
+.sync-dot{width:11px;height:11px;border-radius:50%;background:#B4A99A;flex:none}
+.sync-dot.on{background:#5B8B72}.sync-dot.err{background:#E86B42}.sync-dot.busy{background:#4C6BE6}
+.link-btn{background:none;border:none;color:var(--blue);font-size:13.5px;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline}
+.sync-steps{background:var(--card-soft);border-radius:14px;padding:14px 16px;margin-top:10px;font-size:13.5px;color:#4a4d59;line-height:1.55}
+.sync-steps ol{margin:2px 0 0;padding-left:20px}.sync-steps li{margin:6px 0}
+.sync-steps a{color:var(--blue)}
+.collapse{display:none}.collapse.open{display:block}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+@media(max-width:600px){
+  .hero{padding:34px 26px}.hero h1{font-size:38px}.card{padding:24px 22px}
+  .sec-head h2{font-size:23px}.wrap{padding:0 15px 80px}
+}
+</style>
+</head>
+<body>
+<div class="atmos"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+<div class="topbar">
+  <div class="navbar">
+  <button class="nav-toggle" type="button" aria-label="Открыть меню" aria-expanded="false"><span class="burger">☰</span> Меню</button>
+  <nav class="nav">
+    <a href="#hero" class="act">Обзор</a>
+    <div class="dd">
+      <button class="dd-btn" type="button" aria-haspopup="true" aria-expanded="false">Карта <span class="caret">▾</span></button>
+      <div class="dd-menu">
+        <a href="#arch">Архитектура</a>
+        <a href="#char">Характер</a>
+        <a href="#practice">Практики</a>
+        <a href="#love">Любовь</a>
+        <a href="#work">Работа</a>
+      </div>
+    </div>
+    <a href="#coach">Коучинг</a>
+    <a href="#plan">План 6 мес</a>
+    <a href="#tracker">Трекер</a>
+  </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero reveal" id="hero">
+    <div class="orb"></div>
+    <div class="hero-inner">
+      <p class="eyebrow">Личный разбор</p>
+      <p class="hello">Привет, Юля 👋</p>
+      <h1 class="disp">Твой план<br>роста</h1>
+      <p class="sub">Полный психологический портрет, коучинг по реализации и пошаговый план на ближайшие полгода — в одном месте.</p>
+      <div class="meta-pills">
+        <span>06.02.1992 · 14:00</span>
+        <span>Краснокаменск</span>
+        <span>Плацидус</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1 ARCHITECTURE -->
+  <section class="section reveal" id="arch">
+    <div class="sec-head"><div class="sec-num" style="background:var(--coral)">01</div><h2 class="disp">Архитектура карты</h2></div>
+    <div class="card">
+      <p>Карта очень <span class="k-navy">сжатая и цельная</span>. Почти все планеты собраны в одном секторе неба — вокруг Козерога и Водолея, в домах партнёрства, глубины и смысла. Ты — человек одной большой темы, а не распылённый на десять направлений.</p>
+      <p>Оболочка — <span class="k-navy">Асцендент в конце Близнецов, на пороге Рака</span>. Снаружи мягкость и чувствительность: «сначала считаю атмосферу и безопасность — потом действую». Панцирь снаружи, нежность внутри.</p>
+      <p>Форма — «чаша с ручкой». Весь внутренний напор выходит через одну планету-клапан — <span class="k-navy">Юпитер в Деве</span>: анализ, слово, эстетика, наведение порядка, польза для других.</p>
+      <p class="subhead">Куда стянута энергия карты</p>
+      <div class="house">
+        <div class="cell" style="background:var(--gold)"><span class="lbl">Смысл, мировоззрение · 9 дом</span><span class="pct">15%</span></div>
+        <div class="cell big" style="background:var(--navy)"><span class="pct">40%</span><span class="lbl">Партнёрство и близость · 7 дом — главная тема жизни</span></div>
+        <div class="cell" style="background:var(--blue)"><span class="lbl">Тело, работа, рутина · 6 дом</span><span class="pct">20%</span></div>
+        <div class="cell" style="background:var(--coral)"><span class="lbl">Глубина, деньги в паре, трансформация · 8 дом</span><span class="pct">25%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 CHARACTER -->
+  <section class="section reveal" id="char">
+    <div class="sec-head"><div class="sec-num" style="background:var(--lav)">02</div><h2 class="disp">Характер и внутренний мир</h2></div>
+    <div class="card">
+      <p class="subhead">☉ Солнце в Водолее (рядом с Сатурном и Меркурием)</p>
+      <p>Ядро личности. Ум острый, независимый, со своей логикой. Связка <span class="k-navy">Солнце–Сатурн</span> даёт раннюю взрослость и внутреннего строгого контролёра: «я должна сама», «пока не идеально — не считается». Отсюда огромная работоспособность — но и привычка себя недохваливать.</p>
+      <p class="subhead">☽ Луна в Рыбах</p>
+      <p>Эмоциональный мир огромный и проницаемый. Ты впитываешь чужие состояния как губка и часто не отделяешь, «где моё, а где чужое». Очень сострадательный, интуитивный человек — с риском жить чужой болью.</p>
+      <p class="subhead">☽ Луна в Рыбах ↔ Юпитер в Деве</p>
+      <p>Качели: «чувствую всё сразу, хочу помочь всем» ↔ «надо всё разложить и сделать идеально». Между сердцем и головой. Покой приходит, когда полюса в диалоге, а не в борьбе.</p>
+      <p class="subhead">☉ □ ♇ Солнце в квадрате к Плутону в Скорпионе</p>
+      <p>Сильнейшая воля, глубина, режим «всё или ничего», способность к серьёзной трансформации. Обратная сторона — тема контроля: держать всё под контролем как способ чувствовать безопасность.</p>
+    </div>
+  </section>
+
+  <!-- 3 PRACTICE -->
+  <section class="section reveal" id="practice">
+    <div class="sec-head"><div class="sec-num" style="background:var(--blue)">03</div><h2 class="disp">Три болевые точки и практики</h2></div>
+    <div class="card">
+      <p>Три узла, которые видно в карте. Под каждый — рабочие инструменты: КПТ и телесно-ориентированный подход.</p>
+
+      <div class="notif">
+        <div class="body">
+          <p class="tag">Метод · КПТ</p>
+          <p class="ttl">① Внутренний критик</p>
+          <p class="txt">Дневник автоматических мыслей → разбор по фактам «за / против» → «что бы я сказала подруге» → переформулировать в реалистичное, а не натужно-позитивное.</p>
+        </div>
+        <div class="av" style="background:var(--lav)">К</div>
+      </div>
+
+      <div class="notif">
+        <div class="body">
+          <p class="tag">Метод · тело</p>
+          <p class="ttl">② Слияние с чужими эмоциями</p>
+          <p class="txt">Заземление: стопы + удлинённый выдох. Вопрос телу «это точно моё напряжение?». Ритуал границы после общения. Уединение — гигиена психики, а не каприз.</p>
+        </div>
+        <div class="av" style="background:var(--blue)">Т</div>
+      </div>
+
+      <div class="notif">
+        <div class="body">
+          <p class="tag">Метод · тело + доверие</p>
+          <p class="ttl">③ Контроль и сжатие</p>
+          <p class="txt">Тело «держит»: челюсть, плечи, диафрагма, таз. Выдох со звуком, распускание челюсти, вода и йога (Луна в Рыбах любит воду). Делегировать по чуть-чуть, безопасными дозами.</p>
+        </div>
+        <div class="av" style="background:var(--coral)">С</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 LOVE -->
+  <section class="section reveal" id="love">
+    <div class="sec-head"><div class="sec-num" style="background:var(--coral)">04</div><h2 class="disp">Любовь и отношения</h2></div>
+    <div class="card">
+      <p>Самый насыщенный участок карты — <span class="k-navy">7 дом партнёрства забит планетами</span>. Это главная тема жизни.</p>
+      <p><span class="k-navy">Венера с Ураном и Нептуном в Козероге.</span> Уран — тяга к свободе и отношениям «на своих условиях», влюблённости-вспышки. Нептун — сильная идеализация: огромная нежность, но риск влюбляться в образ, а не в реального человека. Козерог хочет надёжности. Запрос: «и свободы, и надёжности, и волшебства сразу».</p>
+      <p><span class="k-navy">Северный узел в Козероге в 7 доме</span> — вектор роста: от «спрятаться в раковину и спасать» к зрелому равному партнёрству с договорённостями и ответственностью обоих.</p>
+      <div class="call tip">
+        <h4>Что работает в любви именно для тебя</h4>
+        <ul>
+          <li>Выбирать не по «искре и спасению», а сверять образ с реальностью.</li>
+          <li>Давать себе право на границы и личное пространство — без вины.</li>
+          <li>Узнавать человека настоящего, а не свою мечту о нём.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 WORK -->
+  <section class="section reveal" id="work">
+    <div class="sec-head"><div class="sec-num" style="background:var(--gold)">05</div><h2 class="disp">Работа, деньги и призвание</h2></div>
+    <div class="card">
+      <p><span class="k-navy">МС в Овне</span> + козерожье-водолейский набор + <span class="k-navy">Юпитер в Деве как ручка чаши</span>. Тебе нужно дело со смыслом, самостоятельностью и пользой для людей, где результат можно отшлифовать до качества.</p>
+      <p class="subhead">Про роль бренд-менеджера и дизайнера в pet tech</p>
+      <p>Удивительно точное попадание в карту:</p>
+      <div class="notif"><div class="body"><p class="tag">Юпитер в Деве</p><p class="ttl">Дизайн и бренд</p><p class="txt">Твоя «ручка чаши» — эстетика, детали, система, вкус. Графический дизайн буквально этим и живёт.</p></div><div class="av" style="background:var(--gold)">♍</div></div>
+      <div class="notif"><div class="body"><p class="tag">Водолейский стеллиум</p><p class="ttl">Смыслы и упаковка</p><p class="txt">Идеи, концепции, нестандартный взгляд, умение упаковать смысл — сердце бренд-менеджмента.</p></div><div class="av" style="background:var(--blue)">♒</div></div>
+      <div class="notif"><div class="body"><p class="tag">Луна в Рыбах · Асцендент Рак</p><p class="ttl">Забота как тема</p><p class="txt">Чутьё на настроение аудитории + ракская заботливость идеально резонируют с продуктами про животных. Ты продаёшь тепло — искренне.</p></div><div class="av" style="background:var(--coral)">♋</div></div>
+      <div class="call risk">
+        <h4>Зона роста (мягко)</h4>
+        <ul><li>Риск — тянуть всё на себе и полировать до бесконечности. Практика: договориться с собой о «достаточно хорошо» для черновика и делегировать рутину.</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- BIG TRANSITS -->
+  <section class="section reveal">
+    <div class="sec-head"><div class="sec-num" style="background:var(--navy)">06</div><h2 class="disp">Где ты сейчас · процессы 2026</h2></div>
+    <div class="card">
+      <p>Это темы и возможности, а не приговор. Реакция всегда за тобой.</p>
+      <div class="notif"><div class="body"><p class="tag">Юпитер</p><p class="ttl">Новая глава «про себя» → деньги и самоценность</p><p class="txt">Год вкладываться в себя, образ и тело. К середине 2026 акцент смещается на «я стою столько-то». Хорошее окно поднять доход.</p></div><div class="av" style="background:var(--gold)">↑</div></div>
+      <div class="notif"><div class="body"><p class="tag">Плутон в Водолее</p><p class="ttl">Перепрошивка идентичности</p><p class="txt">Долгий процесс: старые «я должна», страхи и контроль вскрываются, чтобы отпуститься. Не катастрофа — взросление. Терапия здесь очень к месту.</p></div><div class="av" style="background:var(--lav)">♇</div></div>
+      <div class="notif"><div class="body"><p class="tag">Уран в Близнецах</p><p class="ttl">Зуд обновления</p><p class="txt">Тянет менять ритм, окружение, способ жить. Не пугаться — направлять осознанно.</p></div><div class="av" style="background:var(--blue)">♅</div></div>
+      <div class="notif"><div class="body"><p class="tag">Сатурн + Нептун в Овне → МС</p><p class="ttl">Профессиональное самоопределение</p><p class="txt">Раскроется сильнее в 2027–2028. Ближайшие полгода — подготовка почвы: честно спросить себя, туда ли я иду.</p></div><div class="av" style="background:var(--coral)">MC</div></div>
+    </div>
+  </section>
+
+  <!-- COACHING (NEW) -->
+  <section class="section reveal" id="coach">
+    <div class="sec-head"><div class="sec-num" style="background:var(--lav)">07</div><h2 class="disp">Коучинг: где я не реализуюсь</h2></div>
+
+    <div class="coach">
+      <div class="glow"></div>
+      <h3>Потолок здесь — не твой личный, а структурный</h3>
+      <p>Ты выбрала «переросла роль» и «выгораю без опоры» — и это ключ. Дело тебе <span class="hl">по-прежнему нравится</span>. Проблема не в поле, а в уровне и в устройстве.</p>
+      <p>Механика: ты делаешь работу более высокого уровня, чем записано в должности, и вкладываешь по максимуму — но под тобой нет фундамента (ни команды, ни делегирования, ни признания, ни подушки). Ты <span class="hl">льёшь всё больше себя в контейнер, который тебе уже мал.</span></p>
+      <p>А компания в кризисе не может дать ни делегирования, ни денег, ни вертикали — не потому что ты недостаточно хороша, а потому что этих ресурсов там сейчас физически нет. Значит честный вопрос уже не «как вырасти здесь», а <span class="hl">сколько ещё я готова вкладывать себя туда, где источник роста пересох.</span></p>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <p class="subhead">Ловушка, в которую тянет карта</p>
+      <p>Луна в Рыбах + Сатурн дают сценарий: «останусь, потерплю, помогу вытянуть, я же не бросаю». Верность и ответственность — красивые качества, но в тонущей компании они превращаются в <span class="k-coral">горение за двоих на тонущем корабле</span>. Оставаться из чувства долга, когда компания объективно не может ничего вернуть, — это не преданность, а медленное самосожжение. Уйти отсюда — не предательство, а забота о себе.</p>
+      <p class="subhead">Но уходить — осознанно, а не в панике</p>
+      <p>Разница огромная: паническое бегство из выгорания против управляемого выхода с подготовленной почвой. Поэтому не «завтра заявление», а спокойный план на 2–3 месяца, чтобы к моменту решения у тебя были <span class="k-navy">опора и выбор</span>, а не отчаяние.</p>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <p class="subhead">План выхода · 2–3 месяца</p>
+      <div class="steps">
+        <div class="step"><div class="n"></div><div><p class="st">Собрать доказательства уровня (нед. 1–2)</p><p class="sd">Портфолио и кейсы: что сделала для бренда, результаты, цифры, до/после. «Переросла роль» — оцифруй это. Обнови профиль.</p></div></div>
+        <div class="step"><div class="n"></div><div><p class="st">Разведка рынка без обязательств (нед. 2–4)</p><p class="sd">Смотреть вакансии бренд-стратега / senior-дизайнера / head of brand, откликаться на 2–3 в неделю. Цель — увидеть свою реальную ценность и вилку.</p></div></div>
+        <div class="step"><div class="n"></div><div><p class="st">Финансовая подушка = свобода</p><p class="sd">Даже небольшой запас снимает панику и не даёт схватиться за первое попавшееся из страха. Подушка = право выбирать.</p></div></div>
+        <div class="step"><div class="n"></div><div><p class="st">Держать восстановление</p><p class="sd">Пока ты внутри выгорающей ситуации — вода и уединение не роскошь, а то, что не даёт развалиться до перехода. В календарь.</p></div></div>
+        <div class="step"><div class="n"></div><div><p class="st">Решение — по факту, а не по усталости</p><p class="sd">Когда есть 1–2 реальных варианта снаружи и минимальная подушка — тогда решаешь. Из позиции силы.</p></div></div>
+      </div>
+    </div>
+
+    <div class="call tip">
+      <h4>Один честный вопрос себе</h4>
+      <ul>
+        <li>Что именно меня держит — реальные перспективы этой компании, или мой страх и чувство долга?</li>
+        <li>Твоя энергия — это капитал. Логично вкладывать его туда, где он даёт отдачу.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section class="section reveal" id="plan">
+    <div class="sec-head"><div class="sec-num" style="background:var(--coral)">08</div><h2 class="disp">План на 6 месяцев</h2></div>
+    <div class="card">
+      <p>Сквозная тема полугодия — <span class="k-lav">поворот к себе</span>: вкладываться в себя, тело и самоценность; распутывать через терапию сценарии контроля; не хвататься за импульсивные перемены, а давать им дозреть.</p>
+    </div>
+
+    <div class="month">
+      <div class="month-top"><div class="m-badge" style="background:var(--coral)">1</div><h3>Диагностика и опора</h3></div>
+      <p class="m-focus">Точка внимания: перегруз и самокритика.</p>
+      <div class="row"><span class="chip c-kpt">КПТ</span><p>Завести дневник мыслей. Две недели просто фиксировать «я должна / недостаточно», без разбора.</p></div>
+      <div class="row"><span class="chip c-body">Тело</span><p>5 минут заземления в день: стопы + удлинённый выдох. Отследить, где тело «держит».</p></div>
+      <div class="row"><span class="chip c-work">Работа</span><p>Выписать в две колонки: «что я реально делаю» и «что записано в роли». Увидеть разрыв в фактах.</p></div>
+      <div class="row"><span class="chip c-me">Я</span><p>Что для меня «границы» на практике? Где я спасаю вместо того, чтобы быть на равных?</p></div>
+    </div>
+
+    <div class="month">
+      <div class="month-top"><div class="m-badge" style="background:var(--gold)">2</div><h3>Работа с критиком</h3></div>
+      <p class="m-focus">Юпитер даёт ресурс вкладываться в себя.</p>
+      <div class="row"><span class="chip c-kpt">КПТ</span><p>Разбирать записанные мысли: факты за/против, «что бы я сказала подруге». Переформулировать в реалистичное.</p></div>
+      <div class="row"><span class="chip c-body">Тело</span><p>Добавить воду: бассейн или тёплые практики 1–2 раза в неделю. Разжимание челюсти на выдохе.</p></div>
+      <div class="row"><span class="chip c-work">Работа</span><p>Собирать портфолио и кейсы. Оцифровать результаты по бренду и дизайну.</p></div>
+      <div class="row"><span class="chip c-me">Деньги</span><p>Посчитать свою реальную ценность на рынке. Формулировать «я стою столько-то».</p></div>
+    </div>
+
+    <div class="month">
+      <div class="month-top"><div class="m-badge" style="background:var(--blue)">3</div><h3>Границы и разведка</h3></div>
+      <p class="m-focus">Профилактика растворения + первые шаги выхода.</p>
+      <div class="row"><span class="chip c-kpt">КПТ</span><p>Отказ без вины: 1–2 маленьких «нет» в неделю. Заметить, что мир не рушится.</p></div>
+      <div class="row"><span class="chip c-body">Тело</span><p>Ритуал границы после плотных встреч. Запланировать уединение в календаре.</p></div>
+      <div class="row"><span class="chip c-work">Работа</span><p>Смотреть вакансии, откликаться на 2–3 в неделю. Увидеть свою вилку на рынке.</p></div>
+      <div class="row"><span class="chip c-me">Я</span><p>Реальность вместо образа: что я знаю о людях рядом фактически, а что домыслила?</p></div>
+    </div>
+
+    <div class="month">
+      <div class="month-top"><div class="m-badge" style="background:var(--coral)">4</div><h3>Самоценность и подушка</h3></div>
+      <p class="m-focus">Акцент на тему 2 дома: деньги и «я стою».</p>
+      <div class="row"><span class="chip c-kpt">КПТ</span><p>Дневник достижений: каждый вечер 3 факта «что я сегодня сделала хорошо».</p></div>
+      <div class="row"><span class="chip c-body">Тело</span><p>Вода + йога + практика снятия «брони»: плечи, диафрагма, таз.</p></div>
+      <div class="row"><span class="chip c-work">Работа</span><p>Наращивать финансовую подушку. Подготовить аргументы к разговору или к переходу.</p></div>
+      <div class="row"><span class="chip c-me">Я</span><p>Инвестировать в видимость: курс, выступление, личный бренд специалиста.</p></div>
+    </div>
+
+    <div class="month">
+      <div class="month-top"><div class="m-badge" style="background:var(--lav)">5</div><h3>Глубина и решение</h3></div>
+      <p class="m-focus">Плутон вскрывает сценарии контроля — работать бережно.</p>
+      <div class="row"><span class="chip c-kpt">Терапия</span><p>Начать регулярную терапию (КПТ или телесную). Тема: контроль и «я должна сама».</p></div>
+      <div class="row"><span class="chip c-body">Тело</span><p>Что подавляю — то давит на тело. Регулярность важнее интенсивности.</p></div>
+      <div class="row"><span class="chip c-work">Работа</span><p>Есть 1–2 реальных варианта снаружи + подушка? Тогда решать — из позиции силы, а не усталости.</p></div>
+      <div class="row"><span class="chip c-me">Я</span><p>Разрешить себе просить помощь в малом. Заметить страх зависимости и не действовать из него.</p></div>
+    </div>
+
+    <div class="month">
+      <div class="month-top"><div class="m-badge" style="background:var(--navy)">6</div><h3>Сборка и вектор</h3></div>
+      <p class="m-focus">Уран будит перемены — направить осознанно.</p>
+      <div class="row"><span class="chip c-kpt">КПТ</span><p>Перечитать дневник за полгода: как изменился внутренний диалог? Зафиксировать сдвиги фактами.</p></div>
+      <div class="row"><span class="chip c-body">Тело</span><p>Закрепить 2–3 прижившиеся практики в постоянный ритм. Остальное отпустить без вины.</p></div>
+      <div class="row"><span class="chip c-work">Работа</span><p>Сформулировать проф-вектор на 1–2 года (подготовка к теме МС 2027–2028): бренд-стратег? глубже в pet/заботу? своя практика?</p></div>
+      <div class="row"><span class="chip c-me">Итог</span><p>Не рубить сплеча на пике «зуда перемен» — дать идеям дозреть ещё квартал.</p></div>
+    </div>
+  </section>
+
+  <!-- TRACKER -->
+  <section class="section reveal" id="tracker">
+    <div class="sec-head"><div class="sec-num" style="background:var(--lav)">✎</div><h2 class="disp">Трекер · Диагностика и опора</h2></div>
+
+    <div class="trk-intro">
+      <p>Твой дневник Месяца&nbsp;1. Пиши сюда прямо из браузера — всё сохраняется автоматически на этом устройстве. Цель этих двух недель — <strong>наблюдать, а не чинить</strong>: просто замечать и фиксировать.</p>
+      <div class="trk-stats">
+        <div class="stat"><div class="num" id="s-days">0</div><div class="cap">дней с записями</div></div>
+        <div class="stat"><div class="num" id="s-thoughts">0</div><div class="cap">мыслей записано</div></div>
+        <div class="stat"><div class="num" id="s-ground">0<span style="font-size:16px">/14</span></div><div class="cap">дней заземления</div></div>
+      </div>
+    </div>
+
+    <!-- СВОДКА НЕДЕЛИ -->
+    <div class="trk sum">
+      <div class="trk-head"><span class="trk-tag" style="background:#E7EAF6;color:#2A3356">Сводка · конец недели</span></div>
+      <h3>Как прошла неделя</h3>
+      <p class="hint">Собирает твои записи за выбранную неделю — по дням, с датой и временем. Листай стрелками между неделями.</p>
+      <div class="wk-nav">
+        <button class="tbtn ghost" id="wk-prev" title="Предыдущая неделя">‹</button>
+        <span class="wk-label" id="wk-label">—</span>
+        <button class="tbtn ghost" id="wk-next" title="Следующая неделя">›</button>
+      </div>
+      <div id="wk-body"></div>
+      <div class="trk-foot" style="margin-top:16px">
+        <button class="tbtn sm" id="wk-copy">Скопировать для анализа</button>
+        <span class="saved-flag" id="wk-copied">скопировано ✓</span>
+      </div>
+      <p class="hint" style="margin-top:12px">💬 Автоматический разбор подключим позже. Пока нажми «Скопировать» и вставь записи мне в чат — я дам тёплый анализ паттернов и мягкие шаги.</p>
+    </div>
+
+    <!-- КПТ: дневник мыслей -->
+    <div class="trk kpt">
+      <div class="trk-head"><span class="trk-tag">КПТ · дневник мыслей</span></div>
+      <h3>① Ловим внутреннего критика</h3>
+      <p class="hint">Записывай мысли вида «я должна…», «недостаточно…», «если не идеально — провал». Пока без разбора — только фиксируй. Разбирать начнём в Месяце&nbsp;2.</p>
+      <textarea id="thought-input" placeholder="Например: «Опять не успела всё — я подвожу команду»..."></textarea>
+      <div class="field-row">
+        <span class="today" id="today-label"></span>
+        <button class="tbtn" id="add-thought">Сохранить запись</button>
+      </div>
+      <div class="entries" id="thought-list"></div>
+    </div>
+
+    <!-- ТЕЛО: заземление -->
+    <div class="trk body">
+      <div class="trk-head"><span class="trk-tag">Тело · заземление</span></div>
+      <h3>② 5 минут в теле</h3>
+      <p class="hint">Стопы на полу, внимание в них, дыхание с удлинённым выдохом (вдох 4 — выдох 6–8). Отметь день и, если хочешь, где тело сегодня «держало».</p>
+      <textarea id="ground-note" placeholder="Где сегодня было напряжение? (челюсть, плечи, диафрагма, таз...) — по желанию"></textarea>
+      <div class="field-row">
+        <button class="tbtn" id="mark-ground">Отметить сегодня ✓</button>
+        <span class="saved-flag" id="ground-saved">записано</span>
+      </div>
+      <div class="dots" id="ground-dots"></div>
+    </div>
+
+    <!-- РАБОТА: две колонки -->
+    <div class="trk work">
+      <div class="trk-head"><span class="trk-tag">Работа · две колонки</span></div>
+      <h3>③ «Переросла роль» — в фактах</h3>
+      <p class="hint">Выпиши без стеснения. Разрыв между колонками — это и есть твой аргумент: для разговора о повышении или для решения двигаться дальше.</p>
+      <div class="two-col">
+        <div><label>Что я реально делаю</label><textarea id="col-real" placeholder="Задачи, ответственность, уровень, который я тяну по факту..."></textarea></div>
+        <div><label>Что записано в моей роли</label><textarea id="col-role" placeholder="Что формально входит в должность..."></textarea></div>
+      </div>
+      <div class="field-row"><span class="saved-flag" id="cols-saved">сохранено</span></div>
+    </div>
+
+    <!-- Я: границы -->
+    <div class="trk me">
+      <div class="trk-head"><span class="trk-tag">Я · границы</span></div>
+      <h3>④ Границы и спасательство</h3>
+      <p class="hint">Что для меня «границы» на практике? Где я спасаю других вместо того, чтобы быть на равных? Возвращайся и дополняй в течение месяца.</p>
+      <textarea id="boundaries" style="min-height:110px" placeholder="Пиши свободно..."></textarea>
+      <div class="field-row"><span class="saved-flag" id="bound-saved">сохранено</span></div>
+    </div>
+
+    <!-- СИНХРОНИЗАЦИЯ · ЯНДЕКС.ДИСК -->
+    <div class="trk" style="border-left-color:#FC3F1D">
+      <div class="trk-head"><span class="trk-tag" style="background:#FFE0DA;color:#C4260F">Синхронизация · Яндекс.Диск</span></div>
+      <h3>Заметки на всех устройствах</h3>
+      <p class="hint">Хранит дневник отдельным файлом в твоём Яндекс.Диске и подхватывает его на телефоне и компьютере (с объединением, без потерь). Пока не вставишь свой токен — синхронизация выключена, и все записи остаются только на этом устройстве.</p>
+      <div id="sync-status" class="sync-status">Синхронизация выключена</div>
+      <div style="margin-top:12px">
+        <input type="text" id="yd-worker" placeholder="Адрес Worker'а (https://…workers.dev)" autocomplete="off">
+        <input type="password" id="yd-secret" placeholder="Секрет синхронизации (тот, что в Worker)" autocomplete="off" style="margin-top:8px">
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <button class="tbtn" id="yd-toggle">Включить синхронизацию</button>
+        <button class="tbtn ghost sm" id="yd-now">Синхронизировать сейчас</button>
+      </div>
+      <details class="yd-help">
+        <summary>Как настроить (один раз, ~15 минут)</summary>
+        <ol>
+          <li>Получи <b>OAuth-токен Яндекс.Диска</b>: на <a href="https://oauth.yandex.ru/" target="_blank" rel="noopener">oauth.yandex.ru</a> создай приложение (платформа «Веб-сервисы», Redirect URI <code>https://oauth.yandex.ru/verification_code</code>, доступ «к папке приложения»), скопируй ClientID, открой <code>https://oauth.yandex.ru/authorize?response_type=token&client_id=ТВОЙ_CLIENTID</code>, разреши доступ — получишь токен.</li>
+          <li>Зайди на <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener">dash.cloudflare.com</a> (заведи бесплатный аккаунт) → раздел <b>Workers &amp; Pages</b> → <b>Create → Create Worker</b> → дай имя (напр. <code>yd-sync</code>) → <b>Deploy</b>.</li>
+          <li>Нажми <b>Edit code</b>, удали весь пример и вставь код из файла <code>worker.js</code> (я его дала). Впиши в начале свой токен Яндекса, придумай и впиши <b>секрет</b>, проверь, что адрес страницы указан верно. Нажми <b>Deploy</b>.</li>
+          <li>Скопируй адрес Worker'а (вида <code>https://yd-sync.твой-логин.workers.dev</code>) и вставь в верхнее поле выше. В нижнее поле впиши тот же <b>секрет</b>. Нажми «Включить синхронизацию».</li>
+        </ol>
+        <p class="hint">Так токен Яндекса хранится только в Worker'е, а не в странице — это безопаснее. Данные лежат в твоём Яндекс.Диске. Секрет нужен, чтобы к твоему Worker'у не обращался никто чужой.</p>
+      </details>
+    </div>
+
+    <div class="trk-foot">
+      <button class="tbtn ghost sm" id="export-btn">Скачать дневник (.txt)</button>
+      <button class="tbtn ghost sm" id="backup-btn">Выгрузить данные (.json)</button>
+      <button class="tbtn ghost sm" id="restore-btn">Загрузить данные</button>
+      <input type="file" id="restore-file" accept="application/json,.json" style="display:none">
+      <button class="tbtn ghost sm" id="clear-btn">Очистить всё</button>
+      <span class="saved-flag" id="restore-ok">данные загружены ✓</span>
+    </div>
+    <p class="hint" style="margin-top:10px">«Выгрузить данные» — полная резервная копия для переноса на другое устройство или в новую версию файла. «Загрузить данные» объединяет записи из копии с текущими, ничего не удаляя.</p>
+  </section>
+
+  <!-- RISKS / RESOURCES -->
+  <section class="section reveal">
+    <div class="card">
+      <div class="call risk">
+        <h4>Твои риски полугодия</h4>
+        <ul><li>Перегруз — из привычки тянуть всё и всех.</li><li>Эмоциональное растворение в других.</li><li>Перфекционизм, который выжигает.</li></ul>
+      </div>
+      <div class="call res" style="margin-top:14px">
+        <h4>Твои ресурсы</h4>
+        <ul><li>Глубина, ум и способность к настоящей внутренней перестройке.</li><li>Эмпатия и вкус — профессиональный капитал в бренде и дизайне.</li><li>Надёжность и качество, которые строят имя в долгую.</li></ul>
+      </div>
+    </div>
+    <div class="closing">
+      <p>Астрология здесь — зеркало и язык для самонаблюдения. Ни одна тенденция не обязана сбыться.<br>Ты — не сумма транзитов, а тот, кто с ними что-то делает.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// scroll reveal
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+// nav active state
+const links=[...document.querySelectorAll('.nav a')];
+const secs=links.map(l=>document.querySelector(l.getAttribute('href'))).filter(Boolean);
+const ddBtn=document.querySelector('.dd-btn');
+const ddMenu=document.querySelector('.dd-menu');
+const ddLinks=[...document.querySelectorAll('.dd-menu a')];
+function syncParent(){ if(ddBtn) ddBtn.classList.toggle('act', ddLinks.some(a=>a.classList.contains('act'))); }
+const so=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){
+  const id='#'+e.target.id;links.forEach(l=>l.classList.toggle('act',l.getAttribute('href')===id));
+  syncParent();
+}})},{rootMargin:'-45% 0px -50% 0px'});
+secs.forEach(s=>so.observe(s));
+
+// dropdown toggle (click for touch; hover handled by CSS)
+const dd=document.querySelector('.dd');
+if(ddBtn&&dd){
+  ddBtn.addEventListener('click',(e)=>{e.stopPropagation();const open=dd.classList.toggle('open');ddBtn.setAttribute('aria-expanded',open);});
+  ddLinks.forEach(a=>a.addEventListener('click',()=>{dd.classList.remove('open');ddBtn.setAttribute('aria-expanded','false');}));
+  document.addEventListener('click',(e)=>{if(!dd.contains(e.target)){dd.classList.remove('open');ddBtn.setAttribute('aria-expanded','false');}});
+  document.addEventListener('keydown',(e)=>{if(e.key==='Escape'){dd.classList.remove('open');ddBtn.setAttribute('aria-expanded','false');}});
+}
+
+// mobile hamburger
+const navToggle=document.querySelector('.nav-toggle');
+const navbar=document.querySelector('.navbar');
+if(navToggle&&navbar){
+  const setBurger=(o)=>{navToggle.setAttribute('aria-expanded',o);navToggle.querySelector('.burger').textContent=o?'✕':'☰';};
+  navToggle.addEventListener('click',(e)=>{e.stopPropagation();setBurger(navbar.classList.toggle('open'));});
+  links.forEach(a=>a.addEventListener('click',()=>{navbar.classList.remove('open');setBurger(false);}));
+  document.addEventListener('click',(e)=>{if(!navbar.contains(e.target)&&navbar.classList.contains('open')){navbar.classList.remove('open');setBurger(false);}});
+  document.addEventListener('keydown',(e)=>{if(e.key==='Escape'&&navbar.classList.contains('open')){navbar.classList.remove('open');setBurger(false);}});
+}
+
+/* ===== TRACKER LOGIC ===== */
+(function(){
+  const KEY='yulia_tracker_m1_v1';
+  const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
+  const save=(d)=>{try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
+  let data=load();
+  data.thoughts=data.thoughts||[];      // [{id,ts,text}]
+  data.grounding=data.grounding||{};    // {"YYYY-MM-DD":{note}}
+  data.columns=data.columns||{real:'',role:''};
+  data.boundaries=data.boundaries||'';
+
+  const $=id=>document.getElementById(id);
+  const todayKey=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+  const fmt=(ts)=>{const d=new Date(ts);return d.getDate()+' '+MONTHS[d.getMonth()]+', '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+  const flag=(el)=>{el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1400)};
+
+  // today label
+  const tl=$('today-label');
+  if(tl){const d=new Date();tl.textContent=d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();}
+
+  function renderStats(){
+    const days=new Set(data.thoughts.map(t=>{const d=new Date(t.ts);return d.toDateString()}));
+    $('s-days').textContent=days.size;
+    $('s-thoughts').textContent=data.thoughts.length;
+    $('s-ground').innerHTML=Object.keys(data.grounding).length+'<span style="font-size:16px">/14</span>';
+  }
+  function renderThoughts(){
+    const list=$('thought-list');list.innerHTML='';
+    if(!data.thoughts.length){list.innerHTML='<div class="empty">Пока пусто. Первая мысль — самая ценная.</div>';return;}
+    [...data.thoughts].reverse().forEach(t=>{
+      const el=document.createElement('div');el.className='entry';
+      el.innerHTML='<div class="e-date">'+fmt(t.ts)+'</div><div class="e-text"></div><button class="e-del" title="Удалить">×</button>';
+      el.querySelector('.e-text').textContent=t.text;
+      el.querySelector('.e-del').onclick=()=>{data.thoughts=data.thoughts.filter(x=>x.id!==t.id);save(data);renderThoughts();renderStats();renderWeek();schedulePush();};
+      list.appendChild(el);
+    });
+  }
+  function renderDots(){
+    const wrap=$('ground-dots');wrap.innerHTML='';
+    const done=Object.keys(data.grounding).sort();
+    for(let i=0;i<14;i++){
+      const d=document.createElement('div');d.className='dot'+(i<done.length?' on':'');
+      d.textContent=i<done.length?'✓':(i+1);wrap.appendChild(d);
+    }
+  }
+
+  // thoughts
+  $('add-thought').onclick=()=>{
+    const inp=$('thought-input');const v=inp.value.trim();if(!v)return;
+    data.thoughts.push({id:Date.now(),ts:Date.now(),text:v});save(data);inp.value='';
+    renderThoughts();renderStats();renderWeek();schedulePush();
+  };
+  $('thought-input').addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')$('add-thought').click();});
+
+  // grounding
+  $('mark-ground').onclick=()=>{
+    const k=todayKey();data.grounding[k]={note:$('ground-note').value.trim()};
+    save(data);renderDots();renderStats();renderWeek();schedulePush();flag($('ground-saved'));$('ground-note').value='';
+  };
+
+  // columns autosave
+  const cr=$('col-real'),co=$('col-role');
+  cr.value=data.columns.real;co.value=data.columns.role;
+  let ct;const saveCols=()=>{clearTimeout(ct);ct=setTimeout(()=>{data.columns={real:cr.value,role:co.value};save(data);flag($('cols-saved'));schedulePush();},600);};
+  cr.addEventListener('input',saveCols);co.addEventListener('input',saveCols);
+
+  // boundaries autosave
+  const bd=$('boundaries');bd.value=data.boundaries;
+  let bt;bd.addEventListener('input',()=>{clearTimeout(bt);bt=setTimeout(()=>{data.boundaries=bd.value;save(data);flag($('bound-saved'));schedulePush();},600);});
+
+  // export
+  $('export-btn').onclick=()=>{
+    let txt='ДНЕВНИК · ДИАГНОСТИКА И ОПОРА (Месяц 1)\n'+'='.repeat(44)+'\n\n';
+    txt+='① ДНЕВНИК МЫСЛЕЙ (КПТ)\n'+'-'.repeat(30)+'\n';
+    txt+=data.thoughts.length?data.thoughts.map(t=>'['+fmt(t.ts)+']\n'+t.text).join('\n\n'):'(пусто)';
+    txt+='\n\n② ЗАЗЕМЛЕНИЕ (тело)\n'+'-'.repeat(30)+'\n';
+    const g=Object.entries(data.grounding);
+    txt+=g.length?g.map(([k,v])=>k+(v.note?' — '+v.note:'')).join('\n'):'(пусто)';
+    txt+='\n\n③ ДВЕ КОЛОНКИ (работа)\n'+'-'.repeat(30)+'\n';
+    txt+='Что я реально делаю:\n'+(data.columns.real||'(пусто)')+'\n\nЧто записано в роли:\n'+(data.columns.role||'(пусто)');
+    txt+='\n\n④ ГРАНИЦЫ (я)\n'+'-'.repeat(30)+'\n'+(data.boundaries||'(пусто)')+'\n';
+    const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='Дневник_Диагностика_и_опора.txt';a.click();
+  };
+
+  // clear
+  $('clear-btn').onclick=()=>{
+    if(confirm('Удалить все записи трекера? Это действие необратимо.')){
+      data={thoughts:[],grounding:{},columns:{real:'',role:''},boundaries:''};save(data);
+      cr.value='';co.value='';bd.value='';$('ground-note').value='';
+      renderThoughts();renderDots();renderStats();renderWeek();schedulePush();
+    }
+  };
+
+  // backup all data as JSON
+  $('backup-btn').onclick=()=>{
+    const payload={_type:'yulia_tracker_backup',_version:1,exported:new Date().toISOString(),data:data};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='Трекер_данные_'+todayKey()+'.json';a.click();
+  };
+
+  // restore (merge) from JSON backup
+  $('restore-btn').onclick=()=>$('restore-file').click();
+  $('restore-file').onchange=(ev)=>{
+    const file=ev.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      let inc;
+      try{const p=JSON.parse(reader.result);inc=p&&p.data?p.data:p;}catch(e){alert('Не удалось прочитать файл — это не похоже на резервную копию трекера.');return;}
+      if(!inc||typeof inc!=='object'){alert('Файл не содержит данных трекера.');return;}
+      // merge thoughts by id (no duplicates)
+      if(Array.isArray(inc.thoughts)){
+        const have=new Set(data.thoughts.map(t=>t.id));
+        inc.thoughts.forEach(t=>{if(t&&!have.has(t.id)){data.thoughts.push(t);have.add(t.id);}});
+        data.thoughts.sort((a,b)=>a.ts-b.ts);
+      }
+      // merge grounding by date (imported fills gaps, keeps existing)
+      if(inc.grounding&&typeof inc.grounding==='object'){
+        Object.keys(inc.grounding).forEach(k=>{if(!data.grounding[k])data.grounding[k]=inc.grounding[k];});
+      }
+      // columns / boundaries: fill only if current is empty
+      if(inc.columns){if(!data.columns.real&&inc.columns.real)data.columns.real=inc.columns.real;
+                       if(!data.columns.role&&inc.columns.role)data.columns.role=inc.columns.role;}
+      if(!data.boundaries&&inc.boundaries)data.boundaries=inc.boundaries;
+      save(data);
+      cr.value=data.columns.real;co.value=data.columns.role;bd.value=data.boundaries;
+      renderThoughts();renderDots();renderStats();renderWeek();
+      flag($('restore-ok'));
+      ev.target.value='';
+    };
+    reader.readAsText(file);
+  };
+
+  /* ---- weekly summary ---- */
+  const STOP=new Set(['и','в','во','не','на','я','что','с','со','а','как','это','эта','этот','то','но','все','всё','так','же','из','за','по','от','до','для','о','об','у','к','бы','ли','мне','меня','мой','моя','моё','мои','есть','был','была','было','были','если','когда','чтобы','тоже','ещё','еще','вот','там','тут','они','он','она','оно','мы','вы','ты','себя','свой','своя','при','про','над','под','без','или','да','нет','уже','только','даже','потом','будто','раз','быть','буду','надо','нибудь','кто','где','чем','этом','этой','того','чтоб','себе','вообще','опять','весь']);
+  const pad=(n)=>String(n).padStart(2,'0');
+  function isoMonday(dt){const d=new Date(dt);const off=(d.getDay()+6)%7;d.setHours(0,0,0,0);d.setDate(d.getDate()-off);return d;}
+  function wkKey(dt){const m=isoMonday(dt);return m.getFullYear()+'-'+pad(m.getMonth()+1)+'-'+pad(m.getDate());}
+  function wkLabel(key){const m=new Date(key+'T00:00:00');const e=new Date(m);e.setDate(e.getDate()+6);
+    const sameM=m.getMonth()===e.getMonth();
+    return sameM ? m.getDate()+'–'+e.getDate()+' '+MONTHS[e.getMonth()]
+                 : m.getDate()+' '+MONTHS[m.getMonth()]+' – '+e.getDate()+' '+MONTHS[e.getMonth()];}
+  let curWeek=wkKey(new Date());
+
+  function weekData(key){
+    const start=new Date(key+'T00:00:00');const end=new Date(start);end.setDate(end.getDate()+7);
+    const th=data.thoughts.filter(t=>{const d=new Date(t.ts);return d>=start&&d<end;});
+    const gr=Object.keys(data.grounding).filter(k=>{const d=new Date(k+'T00:00:00');return d>=start&&d<end;}).sort();
+    return {th,gr};
+  }
+  function topThemes(th){
+    const c={};
+    th.forEach(t=>String(t.text).toLowerCase().replace(/[^a-zа-яё\s]/gi,' ').split(/\s+/).forEach(w=>{
+      if(w.length>=4&&!STOP.has(w)) c[w]=(c[w]||0)+1;}));
+    return Object.entries(c).filter(([w,n])=>n>=2).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  }
+  function reflections(th,gr){
+    const out=[];const joined=th.map(t=>t.text.toLowerCase()).join(' ');
+    if(!th.length&&!gr.length) return out;
+    const critic=(joined.match(/должн|недостаточ|идеальн|провал|не успел|обязан|виноват/g)||[]).length;
+    if(critic>=2) out.push('Часто звучит голос внутреннего критика («должна», «недостаточно», «идеально»). Это узнаваемый мотив Солнце–Сатурн. В Месяце 2 будем разбирать такие мысли по фактам «за / против».');
+    if(gr.length>=5) out.push('Заземление идёт стабильно ('+gr.length+' дн.) — тело получает регулярную разрядку. Так держать.');
+    else if(gr.length>0&&gr.length<3) out.push('Заземление пока нерегулярно ('+gr.length+' дн.). Попробуй привязать его к якорю — после душа или перед сном.');
+    if(th.length>=5) out.push('Ты записала '+th.length+' мыслей — это уже материал, чтобы увидеть повторяющийся паттерн, а не отдельные всплески.');
+    if(th.length===0&&gr.length>0) out.push('Мыслей на этой неделе нет, но телесная практика шла. Даже одна короткая заметка в день помогает заметить паттерн.');
+    return out.slice(0,3);
+  }
+
+  function renderWeek(){
+    $('wk-label').textContent=wkLabel(curWeek);
+    const {th,gr}=weekData(curWeek);const body=$('wk-body');body.innerHTML='';
+    if(!th.length&&!gr.length){body.innerHTML='<div class="wk-empty">За эту неделю записей нет. Начни с одной мысли или отметь день заземления.</div>';return;}
+    // stats
+    const days=new Set(th.map(t=>new Date(t.ts).toDateString())).size;
+    const stats=document.createElement('div');stats.className='wk-stats';
+    stats.innerHTML='<span class="st2"><b>'+th.length+'</b>мыслей</span><span class="st2"><b>'+days+'</b>дней с записями</span><span class="st2"><b>'+gr.length+'</b>/7 заземление</span>';
+    body.appendChild(stats);
+    // themes
+    const themes=topThemes(th);
+    if(themes.length){
+      const lbl=document.createElement('p');lbl.className='themes-lbl';lbl.textContent='Часто повторяется';body.appendChild(lbl);
+      const tw=document.createElement('div');tw.className='themes';
+      themes.forEach(([w,n])=>{const c=document.createElement('span');c.className='theme';c.textContent=w+' ×'+n;tw.appendChild(c);});
+      body.appendChild(tw);
+    }
+    // thoughts by day
+    const byDay={};
+    th.forEach(t=>{const d=new Date(t.ts);const k=d.toDateString();(byDay[k]=byDay[k]||[]).push(t);});
+    Object.keys(byDay).sort((a,b)=>new Date(a)-new Date(b)).forEach(k=>{
+      const d=new Date(k);const wrap=document.createElement('div');wrap.className='wk-day';
+      wrap.innerHTML='<h5>'+d.getDate()+' '+MONTHS[d.getMonth()]+'</h5>';
+      byDay[k].sort((a,b)=>a.ts-b.ts).forEach(t=>{
+        const it=document.createElement('div');it.className='wk-item';
+        const tm=new Date(t.ts);it.innerHTML='<span class="tm">'+pad(tm.getHours())+':'+pad(tm.getMinutes())+'</span>';
+        it.appendChild(document.createTextNode(t.text));wrap.appendChild(it);
+      });
+      body.appendChild(wrap);
+    });
+    // grounding notes
+    const notes=gr.filter(k=>data.grounding[k]&&data.grounding[k].note);
+    if(notes.length){
+      const wrap=document.createElement('div');wrap.className='wk-day';
+      wrap.innerHTML='<h5>Тело держало</h5>';
+      notes.forEach(k=>{const d=new Date(k+'T00:00:00');const it=document.createElement('div');it.className='wk-item';
+        it.innerHTML='<span class="tm">'+d.getDate()+' '+MONTHS[d.getMonth()]+'</span>';
+        it.appendChild(document.createTextNode(data.grounding[k].note));wrap.appendChild(it);});
+      body.appendChild(wrap);
+    }
+    // reflection
+    const refl=reflections(th,gr);
+    if(refl.length){
+      const r=document.createElement('div');r.className='wk-reflect';
+      r.innerHTML='<span class="r-lbl">Мягкое наблюдение</span>'+refl.map(x=>'<p>'+x+'</p>').join('');
+      body.appendChild(r);
+    }
+  }
+
+  // build a plain-text prompt for pasting into Claude (and reuse for future auto-connect)
+  function weekPromptText(key){
+    const {th,gr}=weekData(key);
+    let s='Проанализируй мои записи из дневника (практика КПТ, Месяц 1 «Диагностика и опора»).\n';
+    s+='Неделя: '+wkLabel(key)+'.\n\nМЫСЛИ ПО ДНЯМ:\n';
+    if(th.length){
+      const byDay={};th.forEach(t=>{const k=new Date(t.ts).toDateString();(byDay[k]=byDay[k]||[]).push(t);});
+      Object.keys(byDay).sort((a,b)=>new Date(a)-new Date(b)).forEach(k=>{
+        const d=new Date(k);s+='\n'+d.getDate()+' '+MONTHS[d.getMonth()]+':\n';
+        byDay[k].sort((a,b)=>a.ts-b.ts).forEach(t=>{const tm=new Date(t.ts);s+='  '+pad(tm.getHours())+':'+pad(tm.getMinutes())+' — '+t.text+'\n';});
+      });
+    } else s+='(нет записей)\n';
+    s+='\nЗАЗЕМЛЕНИЕ: '+(gr.length?gr.length+' дн. из 7':'нет')+'\n';
+    const notes=gr.filter(k=>data.grounding[k]&&data.grounding[k].note);
+    if(notes.length){s+='Где тело держало:\n';notes.forEach(k=>{const d=new Date(k+'T00:00:00');s+='  '+d.getDate()+' '+MONTHS[d.getMonth()]+' — '+data.grounding[k].note+'\n';});}
+    s+='\nДай тёплый, бережный разбор: какие паттерны внутреннего критика видны, что повторяется за неделю, и 1–2 мягких шага. Без диагнозов.';
+    return s;
+  }
+
+  $('wk-prev').onclick=()=>{const d=new Date(curWeek+'T00:00:00');d.setDate(d.getDate()-7);curWeek=wkKey(d);renderWeek();};
+  $('wk-next').onclick=()=>{const d=new Date(curWeek+'T00:00:00');d.setDate(d.getDate()+7);curWeek=wkKey(d);renderWeek();};
+  $('wk-copy').onclick=async()=>{
+    const txt=weekPromptText(curWeek);
+    try{await navigator.clipboard.writeText(txt);}catch(e){
+      const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+    }
+    flag($('wk-copied'));
+  };
+
+  /* === ХУК ДЛЯ БУДУЩЕГО АВТОАНАЛИЗА ЧЕРЕЗ CLAUDE ===
+     Когда захочешь автоматический разбор, сюда подставляется вызов Anthropic API.
+     Функция weekPromptText(curWeek) уже возвращает готовый промпт с записями недели.
+     Пример подключения (нужен доступ к API):
+
+     async function analyzeWeekWithClaude(){
+       const prompt = weekPromptText(curWeek);
+       const res = await fetch("https://api.anthropic.com/v1/messages", {
+         method:"POST",
+         headers:{ "Content-Type":"application/json" },
+         body: JSON.stringify({
+           model:"claude-sonnet-4-6",
+           max_tokens:1000,
+           messages:[{ role:"user", content: prompt }]
+         })
+       });
+       const data = await res.json();
+       const text = data.content.filter(b=>b.type==="text").map(b=>b.text).join("\n");
+       // показать text в #wk-body или отдельном блоке
+     }
+     ============================================== */
+
+  /* ===== СИНХРОНИЗАЦИЯ · ЯНДЕКС.ДИСК ===== */
+  function mergeIncoming(inc){
+    if(!inc||typeof inc!=='object')return false;let changed=false;
+    if(Array.isArray(inc.thoughts)){
+      const have=new Set(data.thoughts.map(t=>t.id));
+      inc.thoughts.forEach(t=>{if(t&&t.id!=null&&!have.has(t.id)){data.thoughts.push(t);have.add(t.id);changed=true;}});
+      data.thoughts.sort((a,b)=>a.ts-b.ts);
+    }
+    if(inc.grounding&&typeof inc.grounding==='object'){
+      Object.keys(inc.grounding).forEach(k=>{if(!data.grounding[k]){data.grounding[k]=inc.grounding[k];changed=true;}});
+    }
+    if(inc.columns){if(!data.columns.real&&inc.columns.real){data.columns.real=inc.columns.real;changed=true;}
+                    if(!data.columns.role&&inc.columns.role){data.columns.role=inc.columns.role;changed=true;}}
+    if(!data.boundaries&&inc.boundaries){data.boundaries=inc.boundaries;changed=true;}
+    return changed;
+  }
+  function refreshAll(){cr.value=data.columns.real;co.value=data.columns.role;bd.value=data.boundaries;renderThoughts();renderDots();renderStats();renderWeek();}
+  function hhmm(d){return pad(d.getHours())+':'+pad(d.getMinutes());}
+
+  const SKEY='yulia_sync_cfg_v2';
+  let sync={};try{sync=JSON.parse(localStorage.getItem(SKEY))||{};}catch(e){sync={};}
+  const saveCfg=()=>{try{localStorage.setItem(SKEY,JSON.stringify(sync));}catch(e){}};
+  function setStatus(kind,msg){const el=$('sync-status');if(!el)return;el.className='sync-status'+(kind?' '+kind:'');el.textContent=msg;}
+
+  function base(){return (sync.worker||'').replace(/\/+$/,'');}
+  async function pullRemote(){
+    const r=await fetch(base()+'/load',{headers:{'X-Sync-Secret':sync.secret||''}});
+    if(r.status===403)throw new Error('секрет не совпадает (403)');
+    if(!r.ok)throw new Error('load '+r.status);
+    const txt=await r.text();try{const p=JSON.parse(txt);return p&&p.data?p.data:p;}catch(e){return null;}
+  }
+  async function pushRemote(){
+    const payload=JSON.stringify({_type:'yulia_tracker_backup',_version:1,exported:new Date().toISOString(),data:data});
+    const r=await fetch(base()+'/save',{method:'POST',headers:{'Content-Type':'application/json','X-Sync-Secret':sync.secret||''},body:payload});
+    if(r.status===403)throw new Error('секрет не совпадает (403)');
+    if(!r.ok)throw new Error('save '+r.status);
+  }
+  let syncing=false;
+  async function doSync(){
+    if(!sync.enabled||!sync.worker)return;
+    if(syncing)return;syncing=true;setStatus('sync','Синхронизация…');
+    try{
+      const remote=await pullRemote();
+      if(remote&&mergeIncoming(remote)){save(data);refreshAll();}
+      await pushRemote();
+      sync.lastSync=Date.now();saveCfg();
+      setStatus('ok','Синхронизировано '+hhmm(new Date()));
+    }catch(e){setStatus('err','Ошибка: '+e.message+(/Failed to fetch|Load failed|NetworkError/i.test(e.message)?' — проверь адрес Worker\u2019а и что он опубликован':''));}
+    finally{syncing=false;}
+  }
+  let pushTimer;
+  function schedulePush(){if(!sync.enabled||!sync.worker)return;clearTimeout(pushTimer);pushTimer=setTimeout(()=>{doSync();},1600);}
+
+  function updateSyncUI(){
+    $('yd-worker').value=sync.worker||'';$('yd-secret').value=sync.secret||'';
+    $('yd-toggle').textContent=sync.enabled?'Выключить синхронизацию':'Включить синхронизацию';
+    if(sync.enabled)setStatus(sync.lastSync?'ok':'', sync.lastSync?('Синхронизировано '+hhmm(new Date(sync.lastSync))):'Синхронизация включена');
+    else setStatus('','Синхронизация выключена');
+  }
+  $('yd-toggle').onclick=async()=>{
+    if(sync.enabled){sync.enabled=false;saveCfg();updateSyncUI();return;}
+    const w=$('yd-worker').value.trim();
+    if(!w){alert('Сначала вставь адрес Worker\u2019а (инструкция ниже).');return;}
+    sync.worker=w;sync.secret=$('yd-secret').value.trim();sync.enabled=true;saveCfg();updateSyncUI();
+    await doSync();
+  };
+  $('yd-now').onclick=()=>{if(!sync.enabled){setStatus('','Сначала включи синхронизацию');return;}doSync();};
+
+  renderThoughts();renderDots();renderStats();renderWeek();updateSyncUI();
+  if(sync.enabled&&sync.worker)setTimeout(doSync,500);
+})();
+</script>
+</body>
+</html>
