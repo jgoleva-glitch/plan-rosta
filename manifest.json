@@ -1,0 +1,15 @@
+{
+  "name": "Твой план роста",
+  "short_name": "План роста",
+  "description": "Личный разбор, коучинг и дневник — Юля",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2A3356",
+  "theme_color": "#2A3356",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-title" content="План роста">
 <meta name="theme-color" content="#2A3356">
 <meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Юля · Разбор и план</title>
 <style>
 :root{
@@ -235,10 +238,10 @@ strong{font-weight:600}
 .trk h3{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:20px;font-weight:600;margin:0}
 .trk .hint{font-size:14px;color:var(--muted);margin:0 0 14px}
 
-textarea,input[type=text],input[type=password]{width:100%;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;
+textarea,input[type=text],input[type=password],input[type=time]{width:100%;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;
   color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:16px;padding:13px 15px;
   resize:vertical;line-height:1.55;transition:border-color .2s}
-textarea:focus,input[type=text]:focus,input[type=password]:focus{outline:none;border-color:var(--navy)}
+textarea:focus,input[type=text]:focus,input[type=password]:focus,input[type=time]:focus{outline:none;border-color:var(--navy)}
 textarea{min-height:82px}
 .field-row{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
 .today{font-size:13px;color:var(--muted);background:var(--card-soft);padding:6px 12px;border-radius:12px;white-space:nowrap}
@@ -257,6 +260,9 @@ textarea{min-height:82px}
 .entry .e-del{position:absolute;top:11px;right:12px;background:none;border:none;color:#B4A99A;cursor:pointer;font-size:17px;line-height:1;padding:2px 5px;border-radius:8px}
 .entry .e-del:hover{color:var(--coral);background:rgba(232,107,66,.1)}
 .empty{font-size:14px;color:#A89E90;font-style:italic;margin-top:12px}
+.entries-toggle{align-self:flex-start;background:none;border:none;color:var(--blue);font-size:13.5px;font-weight:600;
+  cursor:pointer;padding:6px 2px;font-family:inherit}
+.entries-toggle:hover{text-decoration:underline}
 
 .dots{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
 .dot{width:26px;height:26px;border-radius:9px;background:var(--card-soft);display:grid;place-items:center;
@@ -315,6 +321,36 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 .link-btn{background:none;border:none;color:var(--blue);font-size:13.5px;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline}
 .sync-steps{background:var(--card-soft);border-radius:14px;padding:14px 16px;margin-top:10px;font-size:13.5px;color:#4a4d59;line-height:1.55}
 .sync-steps ol{margin:2px 0 0;padding-left:20px}.sync-steps li{margin:6px 0}
+
+/* sync wizard */
+.wiz-overlay{position:fixed;inset:0;background:rgba(20,22,30,.55);backdrop-filter:blur(3px);z-index:110;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.wiz-overlay.open{display:flex}
+.wiz-box{background:var(--card);border-radius:var(--radius);max-width:520px;width:100%;max-height:86vh;
+  overflow-y:auto;padding:28px 28px 24px;box-shadow:0 30px 70px rgba(20,22,30,.35)}
+.wiz-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.wiz-step-label{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#C4260F}
+.wiz-close{background:none;border:none;font-size:18px;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:8px;line-height:1}
+.wiz-close:hover{background:var(--card-soft);color:var(--ink)}
+.wiz-dots{display:flex;gap:6px;margin-bottom:20px}
+.wiz-dots span{height:5px;flex:1;border-radius:3px;background:var(--line);transition:background .2s}
+.wiz-dots span.on{background:#E86B42}
+.wiz-body h4{font-size:19px;font-weight:600;margin:0 0 12px;color:var(--ink)}
+.wiz-body p{font-size:14.5px;color:#4a4d59;line-height:1.6;margin:0 0 12px}
+.wiz-body a{color:var(--blue)}
+.wiz-body code{background:var(--card-soft);padding:2px 6px;border-radius:6px;font-size:12.5px;word-break:break-all}
+.wiz-code-wrap{position:relative;margin:12px 0}
+.wiz-code{background:#1E2130;color:#DCE2FB;border-radius:14px;padding:16px 44px 16px 16px;font-size:12px;
+  line-height:1.55;overflow-x:auto;white-space:pre;font-family:ui-monospace,Menlo,Consolas,monospace;max-height:220px}
+.wiz-copy{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.12);border:none;color:#fff;
+  font-size:12px;font-weight:600;padding:6px 10px;border-radius:9px;cursor:pointer}
+.wiz-copy:hover{background:rgba(255,255,255,.22)}
+.wiz-copy.copied{background:#3E7A5A}
+.wiz-field{margin-top:10px}
+.wiz-field label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.wiz-nav{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
+.wiz-step{display:none}
+.wiz-step.active{display:block}
 .sync-steps a{color:var(--blue)}
 .collapse{display:none}.collapse.open{display:block}
 
@@ -696,30 +732,94 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
       </div></div>
     </div>
 
+    <!-- НАПОМИНАНИЕ -->
+    <div class="trk" style="border-left-color:#4C6BE6">
+      <div class="trk-head"><span class="trk-tag" style="background:var(--blue-soft);color:#3550C4">Напоминание</span></div>
+      <h3>Не забыть заглянуть в дневник</h3>
+      <p class="hint">Браузер напомнит в выбранное время, если приложение открыто хотя бы фоновой вкладкой. Полноценные push-уведомления при полностью закрытом сайте, увы, такому приложению недоступны — это ограничение браузеров, не моё 🙂</p>
+      <div class="wiz-field" style="margin-top:4px">
+        <label>Время напоминания</label>
+        <input type="time" id="rem-time" value="20:00">
+      </div>
+      <div class="field-row" style="margin-top:12px">
+        <button class="tbtn" id="rem-toggle">Включить напоминание</button>
+      </div>
+      <div id="rem-status" class="sync-status">Напоминание выключено</div>
+    </div>
+
     <!-- СИНХРОНИЗАЦИЯ · ЯНДЕКС.ДИСК -->
     <div class="trk" style="border-left-color:#FC3F1D">
       <div class="trk-head"><span class="trk-tag" style="background:#FFE0DA;color:#C4260F">Синхронизация · Яндекс.Диск</span></div>
       <h3>Заметки на всех устройствах</h3>
-      <p class="hint">Хранит дневник отдельным файлом в твоём Яндекс.Диске и подхватывает его на телефоне и компьютере (с объединением, без потерь). Пока не вставишь свой токен — синхронизация выключена, и все записи остаются только на этом устройстве.</p>
+      <p class="hint">Хранит дневник отдельным файлом в твоём Яндекс.Диске и подхватывает его на телефоне и компьютере (с объединением, без потерь). Пока не настроишь — все записи остаются только на этом устройстве.</p>
       <div id="sync-status" class="sync-status">Синхронизация выключена</div>
-      <div style="margin-top:12px">
-        <input type="text" id="yd-worker" placeholder="Адрес Worker'а (https://…workers.dev)" autocomplete="off">
-        <input type="password" id="yd-secret" placeholder="Секрет синхронизации (тот, что в Worker)" autocomplete="off" style="margin-top:8px">
-      </div>
       <div class="field-row" style="margin-top:10px">
-        <button class="tbtn" id="yd-toggle">Включить синхронизацию</button>
+        <button class="tbtn" id="sync-wizard-open">Настроить синхронизацию</button>
         <button class="tbtn ghost sm" id="yd-now">Синхронизировать сейчас</button>
       </div>
-      <details class="yd-help">
-        <summary>Как настроить (один раз, ~15 минут)</summary>
-        <ol>
-          <li>Получи <b>OAuth-токен Яндекс.Диска</b>: на <a href="https://oauth.yandex.ru/" target="_blank" rel="noopener">oauth.yandex.ru</a> создай приложение (платформа «Веб-сервисы», Redirect URI <code>https://oauth.yandex.ru/verification_code</code>, доступ «к папке приложения»), скопируй ClientID, открой <code>https://oauth.yandex.ru/authorize?response_type=token&client_id=ТВОЙ_CLIENTID</code>, разреши доступ — получишь токен.</li>
-          <li>Зайди на <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener">dash.cloudflare.com</a> (заведи бесплатный аккаунт) → раздел <b>Workers &amp; Pages</b> → <b>Create → Create Worker</b> → дай имя (напр. <code>yd-sync</code>) → <b>Deploy</b>.</li>
-          <li>Нажми <b>Edit code</b>, удали весь пример и вставь код из файла <code>worker.js</code> (я его дала). Впиши в начале свой токен Яндекса, придумай и впиши <b>секрет</b>, проверь, что адрес страницы указан верно. Нажми <b>Deploy</b>.</li>
-          <li>Скопируй адрес Worker'а (вида <code>https://yd-sync.твой-логин.workers.dev</code>) и вставь в верхнее поле выше. В нижнее поле впиши тот же <b>секрет</b>. Нажми «Включить синхронизацию».</li>
-        </ol>
-        <p class="hint">Так токен Яндекса хранится только в Worker'е, а не в странице — это безопаснее. Данные лежат в твоём Яндекс.Диске. Секрет нужен, чтобы к твоему Worker'у не обращался никто чужой.</p>
-      </details>
+    </div>
+
+    <!-- SYNC WIZARD MODAL -->
+    <div class="wiz-overlay" id="wiz-overlay">
+      <div class="wiz-box">
+        <div class="wiz-head">
+          <span class="wiz-step-label" id="wiz-step-label">Шаг 1 из 4</span>
+          <button class="wiz-close" id="wiz-close" title="Закрыть">✕</button>
+        </div>
+        <div class="wiz-dots" id="wiz-dots"></div>
+        <div class="wiz-body">
+
+          <div class="wiz-step" data-step="1">
+            <h4>Шаг 1. Токен Яндекс.Диска</h4>
+            <p>Это разрешение для приложения писать в отдельную папку на твоём Яндекс.Диске.</p>
+            <p>1. Открой <a href="https://oauth.yandex.ru/" target="_blank" rel="noopener">oauth.yandex.ru</a> → «Создать приложение».<br>
+            2. Платформа — «Веб-сервисы». Redirect URI: <code>https://oauth.yandex.ru/verification_code</code><br>
+            3. В доступах выбери «Яндекс.Диск REST API» → «Доступ к папке приложения».<br>
+            4. Сохрани, скопируй <b>ClientID</b> со страницы приложения.<br>
+            5. Открой в браузере (подставь свой ClientID):<br><code>https://oauth.yandex.ru/authorize?response_type=token&client_id=ТВОЙ_CLIENTID</code><br>
+            6. Разреши доступ — на экране появится <b>токен</b>. Скопируй его, он понадобится на шаге 3.</p>
+          </div>
+
+          <div class="wiz-step" data-step="2">
+            <h4>Шаг 2. Создай Worker на Cloudflare</h4>
+            <p>Worker — это маленький бесплатный сервер-посредник между приложением и твоим Диском.</p>
+            <p>1. Открой <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener">dash.cloudflare.com</a>, заведи бесплатный аккаунт (если ещё нет).<br>
+            2. Слева выбери <b>Workers &amp; Pages</b> → <b>Create</b> → <b>Create Worker</b>.<br>
+            3. Дай имя, например <code>yd-sync</code> → <b>Deploy</b> (пока с шаблонным кодом — это нормально, поменяем на следующем шаге).</p>
+          </div>
+
+          <div class="wiz-step" data-step="3">
+            <h4>Шаг 3. Вставь код Worker'а</h4>
+            <p>Открой свой Worker → <b>Edit code</b>, удали всё содержимое и вставь этот код:</p>
+            <div class="wiz-code-wrap">
+              <pre class="wiz-code" id="wiz-code"></pre>
+              <button class="wiz-copy" id="wiz-copy-code">Скопировать</button>
+            </div>
+            <p>В начале кода впиши свой <b>токен</b> из шага 1 и придумай <b>секрет</b> (любую строку) — так к твоему Worker'у не сможет обратиться никто чужой. Нажми <b>Deploy</b>.</p>
+          </div>
+
+          <div class="wiz-step" data-step="4">
+            <h4>Шаг 4. Подключи приложение</h4>
+            <p>Скопируй адрес своего Worker'а (вида <code>https://yd-sync.твой-логин.workers.dev</code>) и впиши тот же секрет, что указала в коде.</p>
+            <div class="wiz-field">
+              <label>Адрес Worker'а</label>
+              <input type="text" id="yd-worker" placeholder="https://…workers.dev" autocomplete="off">
+            </div>
+            <div class="wiz-field">
+              <label>Секрет синхронизации</label>
+              <input type="password" id="yd-secret" placeholder="Тот же секрет, что в коде Worker'а" autocomplete="off">
+            </div>
+            <div class="field-row" style="margin-top:14px">
+              <button class="tbtn" id="yd-toggle">Включить синхронизацию</button>
+            </div>
+          </div>
+
+        </div>
+        <div class="wiz-nav">
+          <button class="tbtn ghost sm" id="wiz-back">Назад</button>
+          <button class="tbtn sm" id="wiz-next">Далее</button>
+        </div>
+      </div>
     </div>
 
     <div class="trk-foot">
@@ -889,16 +989,26 @@ if(navToggle&&navbar){
     $('s-thoughts').textContent=data.thoughts.length;
     $('s-ground').innerHTML=Object.keys(data.grounding).length+'<span style="font-size:16px">/14</span>';
   }
+  let thoughtsExpanded=false;
   function renderThoughts(){
     const list=$('thought-list');list.innerHTML='';
     if(!data.thoughts.length){list.innerHTML='<div class="empty">Пока пусто. Первая мысль — самая ценная.</div>';return;}
-    [...data.thoughts].reverse().forEach(t=>{
+    const ordered=[...data.thoughts].reverse();
+    const COLLAPSED_COUNT=3;
+    const toShow=thoughtsExpanded?ordered:ordered.slice(0,COLLAPSED_COUNT);
+    toShow.forEach(t=>{
       const el=document.createElement('div');el.className='entry';
       el.innerHTML='<div class="e-date">'+fmt(t.ts)+'</div><div class="e-text"></div><button class="e-del" title="Удалить">×</button>';
       el.querySelector('.e-text').textContent=t.text;
       el.querySelector('.e-del').onclick=()=>{data.thoughts=data.thoughts.filter(x=>x.id!==t.id);save(data);renderThoughts();renderStats();renderWeek();schedulePush();};
       list.appendChild(el);
     });
+    if(ordered.length>COLLAPSED_COUNT){
+      const btn=document.createElement('button');btn.type='button';btn.className='entries-toggle';
+      btn.textContent=thoughtsExpanded?'Свернуть':'Показать ещё '+(ordered.length-COLLAPSED_COUNT);
+      btn.onclick=()=>{thoughtsExpanded=!thoughtsExpanded;renderThoughts();};
+      list.appendChild(btn);
+    }
   }
   function renderDots(){
     const wrap=$('ground-dots');wrap.innerHTML='';
@@ -1133,6 +1243,167 @@ if(navToggle&&navbar){
      }
      ============================================== */
 
+  /* ===== НАПОМИНАНИЕ ===== */
+  (function(){
+    const RKEY='yulia_reminder_cfg_v1';
+    let rem={};try{rem=JSON.parse(localStorage.getItem(RKEY))||{};}catch(e){rem={};}
+    const saveRem=()=>{try{localStorage.setItem(RKEY,JSON.stringify(rem));}catch(e){}};
+    const timeInput=$('rem-time');
+    const toggleBtn=$('rem-toggle');
+    const statusEl=$('rem-status');
+    if(!timeInput||!toggleBtn||!statusEl)return;
+
+    function todayKey(){const d=new Date();return d.toISOString().slice(0,10);}
+    function renderStatus(){
+      if(!rem.enabled){statusEl.className='sync-status';statusEl.textContent='Напоминание выключено';toggleBtn.textContent='Включить напоминание';return;}
+      toggleBtn.textContent='Выключить напоминание';
+      if(typeof Notification!=='undefined'&&Notification.permission==='denied'){
+        statusEl.className='sync-status err';statusEl.textContent='Уведомления заблокированы в браузере — разреши их в настройках сайта';
+      }else{
+        statusEl.className='sync-status ok';statusEl.textContent='Включено на '+rem.time+' (пока вкладка открыта)';
+      }
+    }
+    if(rem.time)timeInput.value=rem.time;
+    renderStatus();
+
+    toggleBtn.addEventListener('click',async()=>{
+      if(rem.enabled){rem.enabled=false;saveRem();renderStatus();return;}
+      rem.time=timeInput.value||'20:00';
+      if(typeof Notification!=='undefined'&&Notification.permission==='default'){
+        try{await Notification.requestPermission();}catch(e){}
+      }
+      rem.enabled=true;rem.lastShown=null;saveRem();renderStatus();
+    });
+    timeInput.addEventListener('change',()=>{rem.time=timeInput.value;saveRem();if(rem.enabled)renderStatus();});
+
+    function showReminder(){
+      const title='Пора заглянуть в дневник 📝';
+      const body='Пару минут на мысли и заземление — и день станет чуть яснее.';
+      if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
+        try{new Notification(title,{body,icon:undefined});return;}catch(e){}
+      }
+      // fallback: in-page banner if Notification API unavailable/blocked but tab is visible
+      if(document.visibilityState==='visible'){
+        const b=document.createElement('div');
+        b.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:14px 22px;border-radius:16px;font-size:14px;z-index:200;box-shadow:0 16px 40px rgba(0,0,0,.25)';
+        b.textContent=title+' — '+body;
+        document.body.appendChild(b);
+        setTimeout(()=>b.remove(),6000);
+      }
+    }
+
+    setInterval(()=>{
+      if(!rem.enabled||!rem.time)return;
+      const now=new Date();
+      const hhmmNow=pad(now.getHours())+':'+pad(now.getMinutes());
+      const tk=todayKey();
+      if(hhmmNow===rem.time&&rem.lastShown!==tk){
+        rem.lastShown=tk;saveRem();showReminder();
+      }
+    },20000);
+  })();
+
+  /* ===== МАСТЕР НАСТРОЙКИ СИНХРОНИЗАЦИИ ===== */
+  (function(){
+    const WORKER_CODE=`// ==== НАСТРОЙКИ: впиши свои значения перед Deploy ====
+const YANDEX_TOKEN = "ВСТАВЬ_СЮДА_ТОКЕН_ИЗ_ШАГА_1";
+const SYNC_SECRET  = "ВСТАВЬ_СЮДА_СВОЙ_СЕКРЕТ"; // придумай любую строку
+const FILE_PATH    = "app:/tracker-data.json";  // файл в папке приложения на Диске
+// =======================================================
+
+function withCors(resp){
+  resp.headers.set("Access-Control-Allow-Origin","*");
+  resp.headers.set("Access-Control-Allow-Headers","Content-Type, X-Sync-Secret");
+  resp.headers.set("Access-Control-Allow-Methods","GET, POST, OPTIONS");
+  return resp;
+}
+
+async function loadFromYandex(){
+  const metaUrl="https://cloud-api.yandex.net/v1/disk/resources/download?path="+encodeURIComponent(FILE_PATH);
+  const metaRes=await fetch(metaUrl,{headers:{Authorization:"OAuth "+YANDEX_TOKEN}});
+  if(metaRes.status===404)return null;
+  if(!metaRes.ok)throw new Error("Yandex meta error "+metaRes.status);
+  const meta=await metaRes.json();
+  const fileRes=await fetch(meta.href);
+  if(!fileRes.ok)throw new Error("Yandex file error "+fileRes.status);
+  return await fileRes.text();
+}
+
+async function saveToYandex(text){
+  const upUrl="https://cloud-api.yandex.net/v1/disk/resources/upload?path="+encodeURIComponent(FILE_PATH)+"&overwrite=true";
+  const upRes=await fetch(upUrl,{headers:{Authorization:"OAuth "+YANDEX_TOKEN}});
+  if(!upRes.ok)throw new Error("Yandex upload-link error "+upRes.status);
+  const {href}=await upRes.json();
+  const putRes=await fetch(href,{method:"PUT",body:text});
+  if(!putRes.ok)throw new Error("Yandex upload error "+putRes.status);
+}
+
+export default {
+  async fetch(request){
+    if(request.method==="OPTIONS")return withCors(new Response(null,{status:204}));
+    const url=new URL(request.url);
+    if(request.headers.get("X-Sync-Secret")!==SYNC_SECRET)return withCors(new Response("Forbidden",{status:403}));
+    try{
+      if(url.pathname==="/load"&&request.method==="GET"){
+        const text=await loadFromYandex();
+        return withCors(new Response(text||"null",{headers:{"Content-Type":"application/json"}}));
+      }
+      if(url.pathname==="/save"&&request.method==="POST"){
+        const body=await request.text();
+        await saveToYandex(body);
+        return withCors(new Response("ok"));
+      }
+      return withCors(new Response("Not found",{status:404}));
+    }catch(e){
+      return withCors(new Response("Error: "+e.message,{status:500}));
+    }
+  }
+};`;
+    const codeEl=$('wiz-code');
+    if(codeEl)codeEl.textContent=WORKER_CODE;
+
+    const overlay=$('wiz-overlay');
+    const openBtn=$('sync-wizard-open');
+    const closeBtn=$('wiz-close');
+    const backBtn=$('wiz-back');
+    const nextBtn=$('wiz-next');
+    const stepLabel=$('wiz-step-label');
+    const dotsWrap=$('wiz-dots');
+    const steps=[...document.querySelectorAll('.wiz-step')];
+    const TOTAL=steps.length;
+    let cur=1;
+
+    steps.forEach((_,i)=>{
+      const d=document.createElement('span');d.dataset.i=i+1;dotsWrap.appendChild(d);
+    });
+    const dots=[...dotsWrap.children];
+
+    function render(){
+      steps.forEach(s=>s.classList.toggle('active',Number(s.dataset.step)===cur));
+      dots.forEach((d,i)=>d.classList.toggle('on',i<cur));
+      stepLabel.textContent='Шаг '+cur+' из '+TOTAL;
+      backBtn.style.visibility=cur===1?'hidden':'visible';
+      nextBtn.textContent=cur===TOTAL?'Готово':'Далее';
+    }
+    function open(){cur=1;render();overlay.classList.add('open');}
+    function close(){overlay.classList.remove('open');}
+
+    if(openBtn)openBtn.addEventListener('click',open);
+    if(closeBtn)closeBtn.addEventListener('click',close);
+    if(overlay)overlay.addEventListener('click',(e)=>{if(e.target===overlay)close();});
+    document.addEventListener('keydown',(e)=>{if(e.key==='Escape'&&overlay.classList.contains('open'))close();});
+    if(backBtn)backBtn.addEventListener('click',()=>{if(cur>1){cur--;render();}});
+    if(nextBtn)nextBtn.addEventListener('click',()=>{if(cur<TOTAL){cur++;render();}else{close();}});
+
+    const copyBtn=$('wiz-copy-code');
+    if(copyBtn)copyBtn.addEventListener('click',async()=>{
+      try{await navigator.clipboard.writeText(WORKER_CODE);}
+      catch(e){const ta=document.createElement('textarea');ta.value=WORKER_CODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
+      copyBtn.textContent='Скопировано ✓';copyBtn.classList.add('copied');
+      setTimeout(()=>{copyBtn.textContent='Скопировать';copyBtn.classList.remove('copied');},1800);
+    });
+  })();
+
   /* ===== СИНХРОНИЗАЦИЯ · ЯНДЕКС.ДИСК ===== */
   function mergeIncoming(inc){
     if(!inc||typeof inc!=='object')return false;let changed=false;
@@ -1195,7 +1466,7 @@ if(navToggle&&navbar){
   $('yd-toggle').onclick=async()=>{
     if(sync.enabled){sync.enabled=false;saveCfg();updateSyncUI();return;}
     const w=$('yd-worker').value.trim();
-    if(!w){alert('Сначала вставь адрес Worker\u2019а (инструкция ниже).');return;}
+    if(!w){alert('Сначала пройди шаги мастера настройки выше и вставь адрес Worker\u2019а.');return;}
     sync.worker=w;sync.secret=$('yd-secret').value.trim();sync.enabled=true;saveCfg();updateSyncUI();
     await doSync();
   };
@@ -1204,6 +1475,13 @@ if(navToggle&&navbar){
   renderThoughts();renderDots();renderStats();renderWeek();updateSyncUI();
   if(sync.enabled&&sync.worker)setTimeout(doSync,500);
 })();
+
+// PWA: register service worker for offline support
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
