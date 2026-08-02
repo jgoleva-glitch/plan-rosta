@@ -564,6 +564,7 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
         <a href="#breath">Дыхание</a>
         <a href="#food">Питание</a>
         <a href="#body">Замеры</a>
+        <a href="#sync">Синхронизация</a>
       </div>
     </div>
   </nav>
@@ -1031,16 +1032,7 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
     </div>
 
     <!-- СИНХРОНИЗАЦИЯ · ЯНДЕКС.ДИСК -->
-    <div class="trk">
-      <div class="trk-head"><span class="trk-tag" style="background:#FFE0DA;color:#C4260F">Синхронизация · Яндекс.Диск</span></div>
-      <h3>Заметки на всех устройствах</h3>
-      <p class="hint">Хранит дневник отдельным файлом в твоём Яндекс.Диске и подхватывает его на телефоне и компьютере (с объединением, без потерь). Пока не настроишь — все записи остаются только на этом устройстве.</p>
-      <div id="sync-status" class="sync-status">Синхронизация выключена</div>
-      <div class="field-row" style="margin-top:10px">
-        <button class="tbtn" id="sync-wizard-open">Настроить синхронизацию</button>
-        <button class="tbtn ghost sm" id="yd-now">Синхронизировать сейчас</button>
-      </div>
-    </div>
+    
 
     <!-- SYNC WIZARD MODAL -->
     <div class="wiz-overlay" id="wiz-overlay">
@@ -1255,6 +1247,9 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
     </div>
   </section>
 
+  
+
+
 
 
   <!-- RISKS / RESOURCES -->
@@ -1273,6 +1268,23 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
       <p>Астрология здесь — зеркало и язык для самонаблюдения. Ни одна тенденция не обязана сбыться.<br>Ты — не сумма транзитов, а тот, кто с ними что-то делает.</p>
     </div>
   </section>
+
+<section class="section reveal" id="sync">
+    <div class="sec-head"><div class="sec-num acc-blue">13</div><h2 class="disp">Синхронизация</h2></div>
+    <div class="card">
+<div class="trk">
+      <div class="trk-head"><span class="trk-tag" style="background:#FFE0DA;color:#C4260F">Синхронизация · Яндекс.Диск</span></div>
+      <h3>Все данные на всех устройствах</h3>
+      <p class="hint">Хранит записи дневника, замеры, даты цикла, отметки тренировок и списка покупок отдельным файлом в твоём Яндекс.Диске и подхватывает их на телефоне и компьютере. Отметила на телефоне — увидишь на компьютере, и наоборот. Слияние без потерь: если правила в двух местах, останется свежая версия, а списки объединятся. Пока не настроишь — всё остаётся только на этом устройстве.</p>
+      <div id="sync-status" class="sync-status">Синхронизация выключена</div>
+      <div class="field-row" style="margin-top:10px">
+        <button class="tbtn" id="sync-wizard-open">Настроить синхронизацию</button>
+        <button class="tbtn ghost sm" id="yd-now">Синхронизировать сейчас</button>
+      </div>
+    </div>
+    </div>
+  </section>
+
 
 </div>
 
@@ -1772,6 +1784,7 @@ export default {
   /* ===== СИНХРОНИЗАЦИЯ · ЯНДЕКС.ДИСК ===== */
   function mergeIncoming(inc){
     if(!inc||typeof inc!=='object')return false;let changed=false;
+    if(inc.body&&window.tlApplyData){if(window.tlApplyData(inc.body)){data.body=inc.body;changed=true;}}
     if(Array.isArray(inc.thoughts)){
       const have=new Set(data.thoughts.map(t=>t.id));
       inc.thoughts.forEach(t=>{if(t&&t.id!=null&&!have.has(t.id)){data.thoughts.push(t);have.add(t.id);changed=true;}});
@@ -1801,6 +1814,8 @@ export default {
     const txt=await r.text();try{const p=JSON.parse(txt);return p&&p.data?p.data:p;}catch(e){return null;}
   }
   async function pushRemote(){
+    // отметки разделов «Тело» едут вместе с дневником
+    if(window.tlCollectData) data.body=window.tlCollectData();
     const payload=JSON.stringify({_type:'yulia_tracker_backup',_version:1,exported:new Date().toISOString(),data:data});
     const r=await fetch(base()+'/save',{method:'POST',headers:{'Content-Type':'application/json','X-Sync-Secret':sync.secret||''},body:payload});
     if(r.status===403)throw new Error('секрет не совпадает (403)');
@@ -1871,7 +1886,11 @@ if('serviceWorker' in navigator){
     catch(e){ return fallback; }
   }
   function set(key, value){
-    try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){}
+    try{
+      localStorage.setItem(key, JSON.stringify(value));
+      // отметка времени: по ней решаем, чья версия свежее при синхронизации
+      localStorage.setItem('tlts_' + key, String(Date.now()));
+    }catch(e){}
   }
   function esc(s){
     return String(s == null ? '' : s)
@@ -1881,6 +1900,13 @@ if('serviceWorker' in navigator){
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
   function today(){ var d = new Date(); d.setHours(0,0,0,0); return d; }
+  /* new Date('2026-08-02') читается как полночь UTC, а today() — местная полночь.
+     В поясе UTC+3 разница даёт минус три часа, дата уезжает во «вчера» и день
+     цикла не считается. Поэтому строки дат разбираем вручную, как локальные. */
+  function parseISO(s){
+    var p = String(s).split('-');
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  }
   function addDays(d, n){ var x = new Date(d); x.setDate(x.getDate()+n); return x; }
 
   /* ── календарь программы ── */
@@ -1903,7 +1929,7 @@ if('serviceWorker' in navigator){
   function cycleLength(){
     var p = periods(), gaps = [];
     for(var i=0; i<p.length-1; i++){
-      var g = Math.round((new Date(p[i+1]) - new Date(p[i]))/86400000);
+      var g = Math.round((parseISO(p[i+1]) - parseISO(p[i]))/86400000);
       if(g >= 20 && g <= 45) gaps.push(g);
     }
     if(!gaps.length) return 29;
@@ -1913,7 +1939,7 @@ if('serviceWorker' in navigator){
   function cycleDay(d){
     var p = periods();
     if(!p.length) return null;
-    var last = new Date(p[p.length-1]);
+    var last = parseISO(p[p.length-1]);
     var diff = Math.floor((d - last)/86400000);
     if(diff < 0) return null;
     return (diff % cycleLength()) + 1;
@@ -2306,7 +2332,7 @@ if('serviceWorker' in navigator){
     if(!ph){ box.innerHTML = '<p class="tl-hint">Даты пока нет. Сила и восстановление меняются в течение месяца на 10–15% — с датой программа это учтёт.</p>'; return; }
     var len = cycleLength();
     var p = periods();
-    var next = addDays(new Date(p[p.length-1]), len);
+    var next = addDays(parseISO(p[p.length-1]), len);
     var left = Math.round((next - today())/86400000);
     box.innerHTML = '<div class="tl-cyc" style="background:' + PHASE_BG[ph.key] + '">' +
       '<b>' + esc(ph.data.emoji + ' День ' + ph.day + ' из ' + len + ' · ' + ph.data.name.toLowerCase()) + '</b>' +
@@ -2418,7 +2444,7 @@ if('serviceWorker' in navigator){
      поэтому 12% там недостижимы и секция осталась бы невидимой. Свой наблюдатель
      с нулевым порогом это чинит, анимация при этом сохраняется. */
   function revealSections(){
-    var ids = ['train','exlib','breath','food','body'];
+    var ids = ['train','exlib','breath','food','body','sync'];
     if(!('IntersectionObserver' in window)){
       ids.forEach(function(id){
         var el = document.getElementById(id);
@@ -2436,6 +2462,98 @@ if('serviceWorker' in navigator){
       if(el) io.observe(el);
     });
   }
+
+
+  /* ── Синхронизация ──────────────────────────────────────────────────────
+     Отметки, замеры и даты цикла уезжают тем же каналом, что и дневник.
+     Слияние по времени изменения: свежая правда побеждает, а списки
+     (даты цикла, выполненные упражнения, покупки) объединяются — чтобы
+     отметка с телефона не стирала отметку с компьютера. */
+  var SYNC_PREFIX = 'tl_', TS_PREFIX = 'tlts_';
+
+  window.tlCollectData = function(){
+    var out = {};
+    try{
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(k && k.indexOf(SYNC_PREFIX) === 0){
+          out[k] = { v: localStorage.getItem(k),
+                     t: +(localStorage.getItem(TS_PREFIX + k) || 0) };
+        }
+      }
+    }catch(e){}
+    return out;
+  };
+
+  function mergeArrays(mine, theirs){
+    var seen = {}, out = [];
+    (mine || []).concat(theirs || []).forEach(function(x){
+      var key = typeof x === 'object' ? JSON.stringify(x) : String(x);
+      if(!seen[key]){ seen[key] = 1; out.push(x); }
+    });
+    return out;
+  }
+
+  window.tlApplyData = function(incoming){
+    if(!incoming || typeof incoming !== 'object') return false;
+    var changed = false;
+
+    Object.keys(incoming).forEach(function(k){
+      var their = incoming[k];
+      if(!their || typeof their.v !== 'string') return;
+      var mineRaw = localStorage.getItem(k);
+      var mineTs = +(localStorage.getItem(TS_PREFIX + k) || 0);
+
+      // списки объединяем, а не перетираем
+      var isList = k.indexOf('tl_done_') === 0 || k.indexOf('tl_shop_') === 0 ||
+                   k === 'tl_periods';
+      if(isList && mineRaw){
+        try{
+          var merged = mergeArrays(JSON.parse(mineRaw), JSON.parse(their.v));
+          if(JSON.stringify(merged) !== mineRaw){
+            localStorage.setItem(k, JSON.stringify(merged));
+            localStorage.setItem(TS_PREFIX + k, String(Math.max(mineTs, their.t)));
+            changed = true;
+          }
+        }catch(e){}
+        return;
+      }
+
+      // замеры: одна запись на дату, свежая заменяет старую
+      if(k === 'tl_measures' && mineRaw){
+        try{
+          var byDate = {};
+          JSON.parse(mineRaw).forEach(function(r){ byDate[r.date] = r; });
+          JSON.parse(their.v).forEach(function(r){
+            if(!byDate[r.date] || their.t > mineTs) byDate[r.date] = r;
+          });
+          var list = Object.keys(byDate).sort().map(function(d){ return byDate[d]; });
+          if(JSON.stringify(list) !== mineRaw){
+            localStorage.setItem(k, JSON.stringify(list));
+            localStorage.setItem(TS_PREFIX + k, String(Math.max(mineTs, their.t)));
+            changed = true;
+          }
+        }catch(e){}
+        return;
+      }
+
+      // остальное — кто новее, тот и прав
+      if(their.t > mineTs && their.v !== mineRaw){
+        localStorage.setItem(k, their.v);
+        localStorage.setItem(TS_PREFIX + k, String(their.t));
+        changed = true;
+      }
+    });
+
+    if(changed && window.tlRefresh) window.tlRefresh();
+    return changed;
+  };
+
+  window.tlRefresh = function(){
+    try{
+      renderWorkout(); renderMenu('today'); renderCycleInfo(); renderHistory();
+    }catch(e){}
+  };
 
   /* ── старт ── */
   function boot(){
