@@ -517,7 +517,8 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
    overscroll-behavior не даёт прокрутке «протечь» на фон при достижении края. */
 @media(max-width:640px){
   .navbar.open .nav{
-    max-height:calc(100vh - 130px);
+    max-height:calc(100vh - 140px);
+    max-height:calc(100dvh - 140px);
     overflow-y:auto;
     overscroll-behavior:contain;
     -webkit-overflow-scrolling:touch;
@@ -2545,6 +2546,32 @@ if('serviceWorker' in navigator){
   function boot(){ initChart(); initBirth(); }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+})();
+</script>
+
+<script>
+/* Обновление приложения.
+   PWA держит страницу в кеше, и без этого пользователь может неделями видеть
+   старую версию. Здесь: проверяем обновление при каждом открытии и
+   перезагружаемся, как только новый service worker готов. */
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.getRegistration().then(function(reg){
+    if(!reg) return;
+    reg.update();
+    // проверяем ещё и при возврате к приложению
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden) reg.update();
+    });
+  });
+
+  var reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(reloading) return;
+    reloading = true;
+    location.reload();
+  });
 })();
 </script>
 </body>

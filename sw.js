@@ -1,4 +1,4 @@
-const CACHE_NAME = 'plan-rosta-v2';
+const CACHE_NAME = 'plan-rosta-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -34,6 +34,22 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const isHTML = e.request.mode === 'navigate' || (e.request.headers.get('accept') || '').includes('text/html');
+
+  // Данные плана — всегда сначала из сети: меню и программы меняются,
+  // и показывать вчерашнюю версию из кеша нельзя. Кеш только как запасной
+  // вариант, когда интернета нет.
+  if (e.request.url.includes('/data/')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((resp) => {
+          const clone = resp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          return resp;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
 
   if (isHTML) {
     e.respondWith(
