@@ -463,7 +463,16 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 .tl-meal-items li{display:flex;justify-content:space-between;gap:12px;font-size:14px;
   padding:6px 0;border-bottom:1px solid var(--line)}
 .tl-meal-items li:last-child{border-bottom:0}
-.tl-meal-items span:last-child{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tl-meal-items li>span:first-child{flex:1;min-width:0;overflow-wrap:anywhere}
+/* Не переносим только правую колонку с граммовкой. Если span в строке один
+   (заметки, «каждый день»), он одновременно first и last — тогда перенос нужен,
+   иначе длинный текст уезжает за карточку. */
+.tl-meal-items li>span:last-child:not(:first-child){color:var(--muted);white-space:nowrap;
+  font-variant-numeric:tabular-nums;flex:0 0 auto}
+.tl-notes{list-style:none;padding:0;margin:0}
+.tl-notes li{font-size:14px;line-height:1.5;padding:8px 0;border-bottom:1px solid var(--line);
+  overflow-wrap:anywhere}
+.tl-notes li:last-child{border-bottom:0}
 .tl-meal-how{font-size:13.5px;line-height:1.55;color:var(--muted);margin:0;
   background:var(--card-soft);border-radius:14px;padding:11px 13px}
 .tl-prep{background:var(--gold-soft);border:1.5px solid var(--gold);border-radius:20px;padding:15px}
@@ -472,7 +481,7 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 
 .tl-shop-cat{font-weight:700;font-size:15px;margin:16px 0 7px}
 .tl-shop-cat:first-child{margin-top:0}
-.tl-shop{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);
+.tl-shop{display:flex;align-items:flex-start;gap:10px;overflow-wrap:anywhere;padding:9px 0;border-bottom:1px solid var(--line);
   font-size:14.5px;cursor:pointer}
 .tl-shop:last-child{border-bottom:0}
 .tl-shop.done{opacity:.42;text-decoration:line-through}
@@ -2154,8 +2163,8 @@ if('serviceWorker' in navigator){
                mealBlock('Ужин · дома', day.dinner);
 
     if(day.extra && day.extra.length){
-      html += '<div class="tl-meal"><p class="tl-meal-ttl">Плюс</p><ul class="tl-meal-items">';
-      day.extra.forEach(function(x){ html += '<li><span>' + esc(x) + '</span></li>'; });
+      html += '<div class="tl-meal"><p class="tl-meal-ttl">Плюс</p><ul class="tl-notes">';
+      day.extra.forEach(function(x){ html += '<li>' + esc(x) + '</li>'; });
       html += '</ul></div>';
     }
 
@@ -2169,8 +2178,8 @@ if('serviceWorker' in navigator){
     if(day.prep) html += '<div class="tl-prep"><h4>Приготовить сегодня вечером</h4><p>' +
       esc(day.prep) + '</p></div>';
 
-    html += '<div class="tl-meal"><p class="tl-meal-ttl">Каждый день</p><ul class="tl-meal-items">';
-    DATA.menu.daily.forEach(function(x){ html += '<li><span>' + esc(x) + '</span></li>'; });
+    html += '<div class="tl-meal"><p class="tl-meal-ttl">Каждый день</p><ul class="tl-notes">';
+    DATA.menu.daily.forEach(function(x){ html += '<li>' + esc(x) + '</li>'; });
     html += '</ul></div>';
 
     box.innerHTML = html;
