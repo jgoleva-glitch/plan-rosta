@@ -442,6 +442,14 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
   font-weight:650;-webkit-tap-highlight-color:transparent}
 .tl-video:active{transform:scale(.98)}
 
+.tl-ex-start{color:var(--coral);font-weight:650}
+.tl-ex-note{font-size:13px;color:var(--muted);line-height:1.45;margin:6px 0 0;font-style:italic}
+.tl-weight{display:flex;align-items:center;gap:9px;margin-top:9px}
+.tl-weight-lbl{font-size:12.5px;color:var(--muted);font-weight:600}
+.tl-weight-in{width:96px;border:1.5px solid var(--line);border-radius:11px;padding:7px 11px;
+  font-size:15px;font-family:inherit;background:var(--card);color:var(--ink);-webkit-appearance:none}
+.tl-weight-in:focus{outline:none;border-color:var(--navy)}
+.tl-weight-was{font-size:12px;color:var(--muted)}
 .tl-block-ttl{font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
   color:var(--muted);margin:18px 0 2px}
 .tl-block-ttl:first-child{margin-top:0}
@@ -1982,16 +1990,47 @@ if('serviceWorker' in navigator){
     return best;
   }
 
-  function exerciseCard(title, sets, id, checkable){
+  /* Рабочие веса: что подняла в прошлый раз — главный вопрос в зале.
+     Храним по названию упражнения, не по дню, чтобы вес переносился между
+     тренировками и синхронизировался вместе с остальными отметками. */
+  function weightKey(){ return 'tl_weights'; }
+  function allWeights(){ return get(weightKey(), {}); }
+  function savedWeight(name){
+    var rec = allWeights()[name];
+    return rec && rec.value ? rec : null;
+  }
+  function setWeight(name, value){
+    var all = allWeights();
+    if(value) all[name] = { value: value, date: iso(today()) };
+    else delete all[name];
+    set(weightKey(), all);
+  }
+
+  function exerciseCard(title, sets, id, checkable, startWeight, note){
     var found = findExercise(title);
     var ex = found ? found.data : null;
     var done = checkable && doneToday().indexOf(id) !== -1;
+    var mine = savedWeight(title);
     var html = '<div class="tl-ex' + (done?' done':'') + '" data-id="' + esc(id) + '">' +
       '<div class="tl-ex-head">';
     if(checkable) html += '<div class="tl-check" data-check="1">✓</div>';
     html += '<div class="tl-ex-body"><p class="tl-ex-name">' + esc(title) + '</p>';
-    if(sets) html += '<p class="tl-ex-sets">' + esc(sets) + '</p>';
+    if(sets) html += '<p class="tl-ex-sets">' + esc(sets) +
+      (startWeight ? ' <span class="tl-ex-start">· ' + esc(startWeight) + '</span>' : '') + '</p>';
     if(ex) html += '<p class="tl-ex-hint">' + esc(ex.short) + '</p>';
+    if(note) html += '<p class="tl-ex-note">' + esc(note) + '</p>';
+    // поле веса только там, где вес вообще бывает: основная часть силовой.
+    // Для разминки, мобилити и упражнений с весом тела оно бессмысленно.
+    var needsWeight = checkable && startWeight &&
+                      startWeight.indexOf('Без веса') !== 0;
+    if(needsWeight){
+      html += '<div class="tl-weight" data-for="' + esc(title) + '">' +
+        '<span class="tl-weight-lbl">Мой вес</span>' +
+        '<input class="tl-weight-in" type="text" inputmode="decimal" placeholder="—" value="' +
+        esc(mine ? mine.value : '') + '">' +
+        (mine ? '<span class="tl-weight-was">с ' + esc(mine.date.slice(8) + '.' + mine.date.slice(5,7)) + '</span>' : '') +
+        '</div>';
+    }
     html += '</div>';
     if(ex) html += '<span class="tl-ex-chev">▾</span>';
     html += '</div>';
@@ -2059,7 +2098,7 @@ if('serviceWorker' in navigator){
 
       html += '<p class="tl-block-ttl">Основная часть</p>';
       plan.main.forEach(function(ex,i){
-        html += exerciseCard(ex.name, ex[key] + (ex.note ? ' · ' + ex.note : ''), 'm'+i, isToday);
+        html += exerciseCard(ex.name, ex[key], 'm'+i, isToday, ex.weight, ex.note);
         items++;
       });
 
@@ -2426,6 +2465,18 @@ if('serviceWorker' in navigator){
         shop.classList.toggle('done');
       }
     });
+
+    // ввод рабочего веса
+    document.addEventListener('change', function(e){
+      var input = e.target.closest('.tl-weight-in');
+      if(!input) return;
+      var box = input.closest('.tl-weight');
+      setWeight(box.dataset.for, input.value.trim());
+    });
+    // клик по полю не должен раскрывать карточку
+    document.addEventListener('click', function(e){
+      if(e.target.closest('.tl-weight')) e.stopPropagation();
+    }, true);
 
     var search = document.getElementById('tlSearch');
     var t = null;
