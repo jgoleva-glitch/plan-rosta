@@ -432,6 +432,11 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 .tl-ex-more-pad p:last-child{margin-bottom:0}
 .tl-ex-more-pad b{font-weight:650}
 .tl-warn{color:var(--coral)}
+.tl-bot-link{margin-top:12px;background:var(--card-soft);border-radius:16px;padding:14px}
+.tl-bot-link p{font-size:13.5px;line-height:1.5;margin:0 0 10px}
+.tl-bot-link code{display:block;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:11px 13px;font-size:12.5px;word-break:break-all;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-bottom:10px}
 .tl-video{display:inline-flex;align-items:center;gap:7px;margin-top:4px;padding:9px 14px;
   border-radius:12px;background:var(--navy);color:#fff;text-decoration:none;font-size:13.5px;
   font-weight:650;-webkit-tap-highlight-color:transparent}
@@ -1281,8 +1286,10 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
       <h3>Все данные на всех устройствах</h3>
       <p class="hint">Хранит записи дневника, замеры, даты цикла, отметки тренировок и списка покупок отдельным файлом в твоём Яндекс.Диске и подхватывает их на телефоне и компьютере. Отметила на телефоне — увидишь на компьютере, и наоборот. Слияние без потерь: если правила в двух местах, останется свежая версия, а списки объединятся. Пока не настроишь — всё остаётся только на этом устройстве.</p>
       <div id="sync-status" class="sync-status">Синхронизация выключена</div>
+      <div id="tl-bot-link" class="tl-bot-link" hidden></div>
       <div class="field-row" style="margin-top:10px">
         <button class="tbtn" id="sync-wizard-open">Настроить синхронизацию</button>
+        <button class="tbtn ghost sm" id="tl-link-bot">Связать с ботом</button>
         <button class="tbtn ghost sm" id="yd-now">Синхронизировать сейчас</button>
       </div>
     </div>
@@ -2707,6 +2714,54 @@ if('serviceWorker' in navigator){
     reloading = true;
     location.reload();
   });
+})();
+</script>
+
+<script>
+/* Кнопка «Связать с ботом»: показывает готовую команду с адресом синхронизации,
+   чтобы отметки цикла и замеры из приложения доезжали до бота. */
+(function(){
+  'use strict';
+  function boot(){
+    var btn = document.getElementById('tl-link-bot');
+    var box = document.getElementById('tl-bot-link');
+    if(!btn || !box) return;
+
+    btn.addEventListener('click', function(){
+      var cfg = null;
+      try{ cfg = JSON.parse(localStorage.getItem('yulia_sync_cfg_v2') || 'null'); }catch(e){}
+
+      if(!cfg || !cfg.worker || !cfg.secret){
+        box.hidden = false;
+        box.innerHTML = '<p>Сначала настрой синхронизацию кнопкой выше — ' +
+          'без неё связывать нечего.</p>';
+        return;
+      }
+
+      var cmd = '/sync_key ' + cfg.worker.replace(/\/+$/, '') + ' ' + cfg.secret;
+      box.hidden = false;
+      box.innerHTML =
+        '<p>Отправь эту команду боту в Telegram. Он сохранит настройки и сразу удалит ' +
+        'сообщение, чтобы секрет не остался в переписке.</p>' +
+        '<code id="tl-bot-cmd"></code>' +
+        '<button class="tbtn ghost sm" id="tl-copy-cmd">Скопировать</button>';
+      document.getElementById('tl-bot-cmd').textContent = cmd;
+
+      document.getElementById('tl-copy-cmd').addEventListener('click', function(){
+        var done = function(){ this.textContent = 'скопировано ✓'; }.bind(this);
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(cmd).then(done, function(){});
+        } else {
+          var t = document.createElement('textarea');
+          t.value = cmd; document.body.appendChild(t); t.select();
+          try{ document.execCommand('copy'); done(); }catch(e){}
+          document.body.removeChild(t);
+        }
+      });
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 </script>
 </body>
