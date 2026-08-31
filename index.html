@@ -404,6 +404,23 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 .tl-cyc{border-radius:18px;padding:12px 16px;margin-bottom:14px;font-size:14px;line-height:1.5}
 .tl-cyc b{display:block;margin-bottom:3px;font-size:15px}
 
+.tl-streak{margin:2px 0 4px}
+.tl-week{display:flex;align-items:center;gap:12px;margin-bottom:7px}
+.tl-week-lbl{flex:0 0 92px;font-size:11px;color:var(--muted);text-align:right;letter-spacing:.02em}
+.tl-week.cur .tl-week-lbl{color:var(--navy);font-weight:700}
+.tl-dots{display:flex;gap:6px;flex:1}
+.tl-dot{flex:1;height:32px;border-radius:12px;display:grid;place-items:center;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+  background:var(--card-soft);color:var(--muted);border:1.5px solid transparent}
+.tl-dot.big{height:38px;font-size:12px}
+@media(max-width:520px){.tl-week{gap:8px}.tl-week-lbl{flex-basis:62px;font-size:10px}.tl-dots{gap:4px}}
+.tl-dot.done{background:var(--coral);color:#fff}
+.tl-dot.miss{background:var(--card);border-color:var(--line);color:var(--muted)}
+.tl-dot.miss.big{border-color:var(--coral-soft)}
+.tl-dot.now{background:var(--card);border-color:var(--coral);color:var(--coral)}
+.tl-dot.future{background:var(--card-soft);color:var(--muted);opacity:.5}
+.tl-dot.light{background:var(--card-soft);color:var(--muted)}
+.tl-streak-line{font-size:13px;color:var(--muted);margin:0}
 .tl-bar{height:7px;background:var(--card-soft);border-radius:99px;overflow:hidden;margin-bottom:6px}
 .tl-bar-fill{height:100%;width:0;background:var(--coral);border-radius:99px;transition:width .35s ease}
 .tl-progress-lbl{font-size:13px;color:var(--muted);margin:0 0 16px}
@@ -964,7 +981,20 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
         <div class="stat"><div class="num" id="s-days">0</div><div class="cap">дней с записями</div></div>
         <div class="stat"><div class="num" id="s-thoughts">0</div><div class="cap">мыслей записано</div></div>
         <div class="stat"><div class="num" id="s-ground">0<span style="font-size:16px">/14</span></div><div class="cap">дней заземления</div></div>
+        <div class="stat"><div class="num" id="s-workouts">0</div><div class="cap">тренировок закрыто</div></div>
       </div>
+    </div>
+
+    <!-- ТРЕНИРОВКИ: закрытые дни -->
+    <div class="trk train collapsible">
+      <div class="trk-head">
+        <div class="trk-head-txt"><span class="trk-tag" style="background:#FBE3DC;color:#8A3B28">Тренировки · закрытые дни</span><h3>Что уже сделано</h3></div>
+        <span class="trk-chevron">▾</span>
+      </div>
+      <div class="trk-body-wrap"><div class="trk-body-inner"><div class="trk-body-pad">
+      <p class="hint">Считает по отметкам в разделе «Тренировка». День засчитан, если отмечено хотя бы <strong>60% упражнений</strong> — добить последнюю растяжку из девяти не повод обнулять всю тренировку. Крупные плашки — силовые дни, мелкие — лёгкие.</p>
+      <div class="tl-streak" id="tlStreak"></div>
+      </div></div></div>
     </div>
 
     <!-- СВОДКА НЕДЕЛИ -->
@@ -2137,8 +2167,97 @@ if('serviceWorker' in navigator){
 
     box.innerHTML = html;
     box.dataset.total = items;
+    // сколько упражнений было в этот день — нужно, чтобы потом понять,
+    // закрыт день или брошен на середине. Только для сегодняшней программы:
+    // когда листаешь чужой день A/B/C, число упражнений там другое.
+    if(isToday) set('tl_total_' + iso(d), items);
     renderCycleBadge();
     updateProgress();
+    renderStreak();
+  }
+
+  /* ── Счётчик закрытых дней (показывается в трекере) ──
+     День считается закрытым, если отмечено не меньше 60% упражнений: добить
+     последнюю растяжку из девяти — не повод обнулять всю тренировку. */
+  var DONE_THRESHOLD = 0.6;
+
+  function dayClosed(dateIso){
+    var done = get('tl_done_' + dateIso, []);
+    var total = get('tl_total_' + dateIso, 0);
+    if(!done.length) return false;
+    // старые отметки писались без общего числа — там судим по количеству
+    if(!total) return done.length >= 5;
+    return done.length / total >= DONE_THRESHOLD;
+  }
+
+  function plural(n, one, few, many){
+    var d10 = n % 10, d100 = n % 100;
+    if(d10 === 1 && d100 !== 11) return one;
+    if(d10 >= 2 && d10 <= 4 && (d100 < 12 || d100 > 14)) return few;
+    return many;
+  }
+
+  function mondayOf(d){ return addDays(d, -((d.getDay() + 6) % 7)); }
+
+  function totalStats(){
+    var trainings = 0, light = 0;
+    try{
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(!k || k.indexOf('tl_done_') !== 0) continue;
+        var dateIso = k.slice(8);
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) continue;
+        if(!dayClosed(dateIso)) continue;
+        var pp = dateIso.split('-');
+        var wd = new Date(+pp[0], +pp[1]-1, +pp[2]).getDay();
+        if(TRAINING_DAYS[wd]) trainings++; else light++;
+      }
+    }catch(e){}
+    return {trainings: trainings, light: light};
+  }
+
+  var WD_SHORT = ['пн','вт','ср','чт','пт','сб','вс'];
+  var MON_SHORT = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+
+  function renderStreak(){
+    var box = document.getElementById('tlStreak');
+    if(!box) return;
+
+    var now = today(), nowIso = iso(now);
+    var thisMonday = mondayOf(now);
+    var rows = '', doneThisWeek = 0;
+
+    // четыре недели: три прошедшие и текущая
+    for(var w = 3; w >= 0; w--){
+      var monday = addDays(thisMonday, -7 * w);
+      var cells = '', weekDone = 0;
+      for(var i = 0; i < 7; i++){
+        var day = addDays(monday, i), dIso = iso(day);
+        var training = !!TRAINING_DAYS[day.getDay()];
+        var closed = dayClosed(dIso);
+        var cls = closed ? 'done' : (dIso === nowIso ? 'now' : (day > now ? 'future' : 'miss'));
+        if(closed && training) weekDone++;
+        cells += '<div class="tl-dot ' + cls + (training ? ' big' : '') +
+                 '" title="' + day.getDate() + ' ' + MON_SHORT[day.getMonth()] + '">' +
+                 '<span>' + (w === 0 ? WD_SHORT[i] : day.getDate()) + '</span></div>';
+      }
+      if(w === 0) doneThisWeek = weekDone;
+      var label = w === 0 ? 'эта неделя' : (w === 1 ? 'прошлая' :
+                  monday.getDate() + '–' + addDays(monday, 6).getDate() + ' ' + MON_SHORT[monday.getMonth()]);
+      rows += '<div class="tl-week' + (w === 0 ? ' cur' : '') + '">' +
+              '<span class="tl-week-lbl">' + label + '</span>' +
+              '<div class="tl-dots">' + cells + '</div></div>';
+    }
+
+    var total = totalStats();
+    box.innerHTML = rows +
+      '<p class="tl-streak-line"><b>' + doneThisWeek + ' из 3</b> силовых на этой неделе · всего закрыто <b>' +
+      total.trainings + '</b> ' + plural(total.trainings, 'тренировка', 'тренировки', 'тренировок') +
+      (total.light ? ' и <b>' + total.light + '</b> ' +
+        plural(total.light, 'лёгкий день', 'лёгких дня', 'лёгких дней') : '') + '</p>';
+
+    var stat = document.getElementById('s-workouts');
+    if(stat) stat.textContent = total.trainings;
   }
 
   function updateProgress(){
@@ -2148,6 +2267,7 @@ if('serviceWorker' in navigator){
     document.getElementById('tlProgress').style.width = total ? (done/total*100) + '%' : '0';
     document.getElementById('tlProgressLbl').textContent =
       done + ' из ' + total + (total && done === total ? ' · всё, готово 🎉' : '');
+    renderStreak();
   }
 
   function renderCycleBadge(){
