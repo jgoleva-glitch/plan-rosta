@@ -1924,7 +1924,10 @@ if('serviceWorker' in navigator){
     start:'tl_start', place:'tl_place', periods:'tl_periods',
     measures:'tl_measures', done:'tl_done_', shop:'tl_shop_'
   };
-  var DEFAULT_START = '2026-08-03';       // понедельник, начало программы
+  var DEFAULT_START = '2026-09-03';       // начало программы
+  // Прошлые даты старта. Если в памяти лежит одна из них — это не выбор Юли,
+  // а прежнее значение по умолчанию: молча переводим на новое.
+  var LEGACY_STARTS = ['2026-08-03', '2026-08-31', '2026-09-01', '2026-09-02'];
   var TRAINING_DAYS = {1:'A', 3:'B', 5:'C'};
   var DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
   var DAY_NAMES = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
@@ -1960,11 +1963,20 @@ if('serviceWorker' in navigator){
 
   /* ── календарь программы ── */
   function startDate(){
-    var parts = get(LS.start, DEFAULT_START).split('-');
+    var v = get(LS.start, DEFAULT_START);
+    if(LEGACY_STARTS.indexOf(v) !== -1){ v = DEFAULT_START; set(LS.start, v); }
+    var parts = v.split('-');
     return new Date(+parts[0], +parts[1]-1, +parts[2]);
   }
+  // Счёт недель ведём от понедельника той недели, в которую пришёлся старт.
+  // Иначе при старте не с понедельника номер недели переключался бы посреди
+  // недели и фаза рвалась бы внутри тройки тренировок A/B/C.
+  function weekAnchor(){
+    var s = startDate();
+    return new Date(s.getFullYear(), s.getMonth(), s.getDate() - ((s.getDay() + 6) % 7));
+  }
   function programWeek(d){
-    var diff = Math.floor((d - startDate()) / 86400000);
+    var diff = Math.floor((d - weekAnchor()) / 86400000);
     return Math.max(1, Math.floor(diff/7) + 1);
   }
   function phase(d){ return programWeek(d) <= 4 ? 1 : 2; }
@@ -2754,7 +2766,7 @@ if('serviceWorker' in navigator){
       document.querySelectorAll('[data-place]').forEach(function(b){
         b.classList.toggle('act', b.dataset.place === place);
       });
-      document.getElementById('tlStartDate').value = get(LS.start, DEFAULT_START);
+      document.getElementById('tlStartDate').value = iso(startDate());  // уже с учётом переезда старой даты
       document.getElementById('tlPeriodDate').value = iso(today());
 
       renderWorkout();
