@@ -981,7 +981,7 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
         <div class="stat"><div class="num" id="s-days">0</div><div class="cap">дней с записями</div></div>
         <div class="stat"><div class="num" id="s-thoughts">0</div><div class="cap">мыслей записано</div></div>
         <div class="stat"><div class="num" id="s-ground">0<span style="font-size:16px">/14</span></div><div class="cap">дней заземления</div></div>
-        <div class="stat"><div class="num" id="s-workouts">0</div><div class="cap">тренировок закрыто</div></div>
+        <div class="stat"><div class="num" id="s-workouts">0</div><div class="cap">ударных закрыто</div></div>
       </div>
     </div>
 
@@ -1173,9 +1173,13 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 
       <div class="tl-where tl-where-wide" id="tlDayPick">
         <button class="tl-chip act" data-view="today" type="button">Сегодня</button>
-        <button class="tl-chip" data-view="A" type="button">День A</button>
-        <button class="tl-chip" data-view="B" type="button">День B</button>
-        <button class="tl-chip" data-view="C" type="button">День C</button>
+        <button class="tl-chip" data-view="A" type="button">A</button>
+        <button class="tl-chip" data-view="B" type="button">B</button>
+        <button class="tl-chip" data-view="C" type="button">C</button>
+        <button class="tl-chip" data-view="D" type="button">D</button>
+        <button class="tl-chip" data-view="L1" type="button">Лёгкий 1</button>
+        <button class="tl-chip" data-view="L2" type="button">Лёгкий 2</button>
+        <button class="tl-chip" data-view="L3" type="button">Лёгкий 3</button>
       </div>
 
       <p class="tl-hint" id="tlViewNote" hidden></p>
@@ -1928,7 +1932,10 @@ if('serviceWorker' in navigator){
   // Прошлые даты старта. Если в памяти лежит одна из них — это не выбор Юли,
   // а прежнее значение по умолчанию: молча переводим на новое.
   var LEGACY_STARTS = ['2026-08-03', '2026-08-31', '2026-09-01', '2026-09-03'];
-  var TRAINING_DAYS = {4:'A', 5:'B', 6:'C'};   // воскресенье = 0; силовые чт/пт/сб
+  // Воскресенье = 0. Тренировка есть каждый день: выходных в расписании нет.
+  // Отдых — это день без галочек, он просто не попадёт в трекер.
+  var DAY_PROGRAM = {1:'D', 2:'L1', 3:'L2', 4:'A', 5:'B', 6:'C', 0:'L3'};
+  var HEAVY_DAYS = {A:1, B:1, C:1, D:1};   // ударные — 4 раза в неделю
   var DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
   var DAY_NAMES = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
 
@@ -2095,8 +2102,11 @@ if('serviceWorker' in navigator){
   function doneKey(){ return LS.done + iso(today()); }
   function doneToday(){ return get(doneKey(), []); }
 
-  var DAY_OF_LETTER = {A:'четверг', B:'пятница', C:'суббота'};
-  var viewDay = 'today';   // 'today' | 'A' | 'B' | 'C'
+  var DAY_OF_LETTER = {D:'понедельник', L1:'вторник', L2:'среда', A:'четверг',
+                      B:'пятница', C:'суббота', L3:'воскресенье'};
+  var LETTER_NAME = {A:'День A', B:'День B', C:'День C', D:'День D',
+                     L1:'Лёгкий 1', L2:'Лёгкий 2', L3:'Лёгкий 3'};
+  var viewDay = 'today';   // 'today' | ключ из DAY_PROGRAM
 
   function renderWorkout(){
     var box = document.getElementById('tlWorkout');
@@ -2106,84 +2116,69 @@ if('serviceWorker' in navigator){
     var html = '', items = 0;
 
     // какую программу показываем: сегодняшнюю или выбранную вручную
-    var letter = viewDay === 'today' ? TRAINING_DAYS[wd] : viewDay;
-    var isToday = TRAINING_DAYS[wd] === letter;
+    var letter = viewDay === 'today' ? DAY_PROGRAM[wd] : viewDay;
+    var isToday = DAY_PROGRAM[wd] === letter;
+    var heavy = !!HEAVY_DAYS[letter];
     // Отметки разных дней не должны склеиваться: номера упражнений (m0, m1…)
-    // в дне A и в дне B одинаковые, поэтому добавляем к ним букву дня.
-    var pfx = (letter || 'M') + ':';
+    // во всех днях одинаковые, поэтому добавляем к ним ключ дня.
+    var pfx = letter + ':';
+    var plan = DATA.workouts[place][letter];
+    var key = ph === 1 ? 'p1' : 'p2';
     var placePick = document.getElementById('tlPlacePick');
     var note = document.getElementById('tlViewNote');
-    var bar = document.querySelector('.tl-bar');
-    var barLbl = document.getElementById('tlProgressLbl');
 
-    // Заголовок одинаковый у всех дней: буква, свой день недели и пометка,
-    // если это сегодня. Раньше сегодняшний день назывался «Среда», а остальные
-    // «День A» — из-за этого было непонятно, на что смотришь.
-    document.getElementById('tlDayName').textContent = letter
-      ? 'День ' + letter + ' · ' + DAY_OF_LETTER[letter] + (isToday ? ' · сегодня' : '')
-      : DAY_NAMES[wd].charAt(0).toUpperCase() + DAY_NAMES[wd].slice(1) + ' · сегодня';
+    document.getElementById('tlPlacePick').hidden = false;
+    document.querySelector('.tl-bar').hidden = false;
+    document.getElementById('tlProgressLbl').hidden = false;
+    document.getElementById('tlTimer').hidden = !heavy;
 
-    if(letter){
-      var plan = DATA.workouts[place][letter];
-      var key = ph === 1 ? 'p1' : 'p2';
-      placePick.hidden = false;
-      bar.hidden = false;
-      barLbl.hidden = false;
+    // Заголовок одинаковый у всех дней: имя программы, её день недели и
+    // пометка, если это сегодня.
+    document.getElementById('tlDayName').textContent =
+      LETTER_NAME[letter] + ' · ' + DAY_OF_LETTER[letter] + (isToday ? ' · сегодня' : '');
+    document.getElementById('tlDayMeta').textContent =
+      plan.title + ' · неделя ' + wk + (heavy ? ' · фаза ' + ph : '');
 
-      document.getElementById('tlDayMeta').textContent =
-        plan.title + ' · неделя ' + wk + ' · фаза ' + ph;
+    if(isToday && heavy){
+      note.hidden = true;
+    } else {
+      note.hidden = false;
+      note.textContent = heavy
+        ? 'По плану этот день — ' + DAY_OF_LETTER[letter] +
+          '. Галочки работают: если делаешь его сегодня, отметки запишутся на сегодня.'
+        : 'Лёгкий день. Делаешь сколько получается: можно только разминку, можно всё. ' +
+          'Не сделала — просто не отмечаешь, это и есть отдых.';
+    }
 
-      if(isToday){
-        note.hidden = true;
-      } else {
-        note.hidden = false;
-        note.textContent = 'По плану этот день — ' + DAY_OF_LETTER[letter] +
-          '. Галочки работают: если делаешь его сегодня, отметки запишутся на сегодня.';
-      }
+    html += '<p class="tl-block-ttl">' + (heavy ? 'Разминка · 8 минут' : 'Разминка') + '</p>';
+    plan.warmup.forEach(function(x,i){ html += exerciseCard(x, '', pfx+'w'+i, true); items++; });
 
-      html += '<p class="tl-block-ttl">Разминка · 8 минут</p>';
-      plan.warmup.forEach(function(x,i){ html += exerciseCard(x, '', pfx+'w'+i, true); items++; });
+    html += '<p class="tl-block-ttl">Основная часть</p>';
+    plan.main.forEach(function(ex,i){
+      html += exerciseCard(ex.name, ex[key], pfx+'m'+i, true, ex.weight, ex.note);
+      items++;
+    });
 
-      html += '<p class="tl-block-ttl">Основная часть</p>';
-      plan.main.forEach(function(ex,i){
-        html += exerciseCard(ex.name, ex[key], pfx+'m'+i, true, ex.weight, ex.note);
-        items++;
-      });
-
+    if(heavy){
       html += '<p class="tl-block-ttl">Заминка · 5 минут</p>';
       DATA.workouts.cooldown.forEach(function(x,i){ html += exerciseCard(x, '', pfx+'c'+i, true); items++; });
+    }
 
-      document.getElementById('tlTimer').hidden = false;
-    } else {
-      // Дни без силовой: вс, пн, вт, ср. Воскресенье идёт сразу после трёх
-      // силовых подряд — берём самый лёгкий блок. Понедельник длинный: спина
-      // успела отойти, до следующей силовой ещё три дня.
-      var block = wd === 0 ? DATA.workouts.mobility.sunday
-                : wd === 1 ? DATA.workouts.mobility.long
-                : DATA.workouts.mobility.weekday;
-      // мобилити одинаково дома и в зале — переключатель места тут не нужен
-      placePick.hidden = true;
-      bar.hidden = false;
-      barLbl.hidden = false;
-      note.hidden = false;
-      note.textContent = 'Сегодня без силовой: мобилити и ходьба. Это делается одинаково ' +
-        'дома и в зале, поэтому выбора места нет. Силовую можно посмотреть заранее — ' +
-        'кнопки «День A / B / C» выше.';
-      document.getElementById('tlDayMeta').textContent = block.title + ' · неделя ' + wk;
-      block.items.forEach(function(x,i){ html += exerciseCard(x, '', pfx+'b'+i, true); items++; });
+    if(plan.extra){
+      html += '<p class="tl-block-ttl">Плюс</p><div class="tl-ex"><div class="tl-ex-head">' +
+        '<div class="tl-ex-body"><p class="tl-ex-hint">' + esc(plan.extra) + '</p></div></div></div>';
+    }
 
+    if(plan.cardio){
       var cardio = DATA.workouts.cardio[Math.min(wk,10)];
-      if(cardio && [1,2,3].indexOf(wd) !== -1){   // пн, вт, ср — дни без силовой
+      if(cardio){
         html += '<p class="tl-block-ttl">Кардио</p>' +
           '<div class="tl-ex"><div class="tl-ex-head"><div class="tl-ex-body">' +
-          '<p class="tl-ex-name">Сегодня</p><p class="tl-ex-hint">' + esc(cardio) + '</p>' +
+          '<p class="tl-ex-name">Кардио по плану недели ' + wk + '</p>' +
+          '<p class="tl-ex-hint">' + esc(cardio) + '</p>' +
           '<p class="tl-ex-hint">Разговорный тест: можешь сказать целое предложение и не задохнуться — темп верный.</p>' +
           '</div></div></div>';
-      } else if(block.extra){
-        html += '<p class="tl-block-ttl">Плюс</p><div class="tl-ex"><div class="tl-ex-head">' +
-          '<div class="tl-ex-body"><p class="tl-ex-hint">' + esc(block.extra) + '</p></div></div></div>';
       }
-      document.getElementById('tlTimer').hidden = true;
     }
 
     box.innerHTML = html;
@@ -2232,7 +2227,7 @@ if('serviceWorker' in navigator){
         if(!dayClosed(dateIso)) continue;
         var pp = dateIso.split('-');
         var wd = new Date(+pp[0], +pp[1]-1, +pp[2]).getDay();
-        if(TRAINING_DAYS[wd]) trainings++; else light++;
+        if(HEAVY_DAYS[DAY_PROGRAM[wd]]) trainings++; else light++;
       }
     }catch(e){}
     return {trainings: trainings, light: light};
@@ -2255,7 +2250,7 @@ if('serviceWorker' in navigator){
       var cells = '', weekDone = 0;
       for(var i = 0; i < 7; i++){
         var day = addDays(monday, i), dIso = iso(day);
-        var training = !!TRAINING_DAYS[day.getDay()];
+        var training = !!HEAVY_DAYS[DAY_PROGRAM[day.getDay()]];
         var closed = dayClosed(dIso);
         var cls = closed ? 'done' : (dIso === nowIso ? 'now' : (day > now ? 'future' : 'miss'));
         if(closed && training) weekDone++;
@@ -2273,8 +2268,8 @@ if('serviceWorker' in navigator){
 
     var total = totalStats();
     box.innerHTML = rows +
-      '<p class="tl-streak-line"><b>' + doneThisWeek + ' из 3</b> силовых на этой неделе · всего закрыто <b>' +
-      total.trainings + '</b> ' + plural(total.trainings, 'тренировка', 'тренировки', 'тренировок') +
+      '<p class="tl-streak-line"><b>' + doneThisWeek + ' из 4</b> ударных на этой неделе · всего закрыто <b>' +
+      total.trainings + '</b> ' + plural(total.trainings, 'ударная', 'ударные', 'ударных') +
       (total.light ? ' и <b>' + total.light + '</b> ' +
         plural(total.light, 'лёгкий день', 'лёгких дня', 'лёгких дней') : '') + '</p>';
 
@@ -2401,7 +2396,7 @@ if('serviceWorker' in navigator){
     // завтрашнее, в воскресенье — сразу на два дня. Поэтому при переносе
     // силовых меню остаётся на своём дне, а тренировочная надбавка (банан плюс
     // порция белка) едет за расписанием. Те же правила, что в боте.
-    var isTrain = !!TRAINING_DAYS[d.getDay()];
+    var isTrain = !!HEAVY_DAYS[DAY_PROGRAM[d.getDay()]];
     var menuForTrain = !!day.training;
 
     meta.textContent = DAY_NAMES[d.getDay()] + ' · ' +
