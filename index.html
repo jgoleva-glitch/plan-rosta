@@ -2193,7 +2193,7 @@ if('serviceWorker' in navigator){
     // закрыт день или брошен на середине. Только для сегодняшней программы:
     // когда листаешь чужой день A/B/C, число упражнений там другое.
     if(isToday) set('tl_total_' + iso(d), items);
-    renderCycleBadge();
+    renderCycleBadge(isToday);
     updateProgress();
     renderStreak();
   }
@@ -2295,8 +2295,13 @@ if('serviceWorker' in navigator){
     renderStreak();
   }
 
-  function renderCycleBadge(){
+  /* День цикла и фаза считаются от сегодняшней даты, поэтому показывать их
+     имеет смысл только на сегодняшнем дне. Когда смотришь день A или C
+     заранее, плашка прячется: завтра этот день сам станет сегодняшним, и
+     номер дня цикла будет уже другой. */
+  function renderCycleBadge(viewingToday){
     var el = document.getElementById('tlCycleBadge');
+    if(viewingToday === false){ el.hidden = true; return; }
     var ph = cyclePhase(today());
     if(!ph){ el.hidden = true; return; }
     el.hidden = false;
@@ -2669,7 +2674,9 @@ if('serviceWorker' in navigator){
       if(!v) return;
       var arr = periods();
       if(arr.indexOf(v) === -1){ arr.push(v); arr.sort(); set(LS.periods, arr); }
-      renderCycleInfo(); renderCycleBadge(); renderMenu('today');
+      // renderWorkout сам решит, показывать ли плашку цикла: она нужна
+      // только если сейчас открыт сегодняшний день
+      renderCycleInfo(); renderWorkout(); renderMenu('today');
       document.querySelectorAll('[data-menu]').forEach(function(b,i){ b.classList.toggle('act', i===0); });
     });
 
