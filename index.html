@@ -1924,11 +1924,11 @@ if('serviceWorker' in navigator){
     start:'tl_start', place:'tl_place', periods:'tl_periods',
     measures:'tl_measures', done:'tl_done_', shop:'tl_shop_'
   };
-  var DEFAULT_START = '2026-09-03';       // начало программы
+  var DEFAULT_START = '2026-09-02';       // начало программы
   // Прошлые даты старта. Если в памяти лежит одна из них — это не выбор Юли,
   // а прежнее значение по умолчанию: молча переводим на новое.
-  var LEGACY_STARTS = ['2026-08-03', '2026-08-31', '2026-09-01', '2026-09-02'];
-  var TRAINING_DAYS = {1:'A', 3:'B', 5:'C'};
+  var LEGACY_STARTS = ['2026-08-03', '2026-08-31', '2026-09-01', '2026-09-03'];
+  var TRAINING_DAYS = {4:'A', 5:'B', 6:'C'};   // воскресенье = 0; силовые чт/пт/сб
   var DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
   var DAY_NAMES = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
 
@@ -2095,7 +2095,7 @@ if('serviceWorker' in navigator){
   function doneKey(){ return LS.done + iso(today()); }
   function doneToday(){ return get(doneKey(), []); }
 
-  var DAY_OF_LETTER = {A:'понедельник', B:'среда', C:'пятница'};
+  var DAY_OF_LETTER = {A:'четверг', B:'пятница', C:'суббота'};
   var viewDay = 'today';   // 'today' | 'A' | 'B' | 'C'
 
   function renderWorkout(){
@@ -2155,8 +2155,11 @@ if('serviceWorker' in navigator){
 
       document.getElementById('tlTimer').hidden = false;
     } else {
-      var block = wd === 6 ? DATA.workouts.mobility.saturday
-                : wd === 0 ? DATA.workouts.mobility.sunday
+      // Дни без силовой: вс, пн, вт, ср. Воскресенье идёт сразу после трёх
+      // силовых подряд — берём самый лёгкий блок. Понедельник длинный: спина
+      // успела отойти, до следующей силовой ещё три дня.
+      var block = wd === 0 ? DATA.workouts.mobility.sunday
+                : wd === 1 ? DATA.workouts.mobility.long
                 : DATA.workouts.mobility.weekday;
       // мобилити одинаково дома и в зале — переключатель места тут не нужен
       placePick.hidden = true;
@@ -2170,7 +2173,7 @@ if('serviceWorker' in navigator){
       block.items.forEach(function(x,i){ html += exerciseCard(x, '', pfx+'b'+i, true); items++; });
 
       var cardio = DATA.workouts.cardio[Math.min(wk,10)];
-      if(cardio && [2,4,6].indexOf(wd) !== -1){
+      if(cardio && [1,2,3].indexOf(wd) !== -1){   // пн, вт, ср — дни без силовой
         html += '<p class="tl-block-ttl">Кардио</p>' +
           '<div class="tl-ex"><div class="tl-ex-head"><div class="tl-ex-body">' +
           '<p class="tl-ex-name">Сегодня</p><p class="tl-ex-hint">' + esc(cardio) + '</p>' +
@@ -2365,6 +2368,18 @@ if('serviceWorker' in navigator){
     return html + '</div>';
   }
 
+  /* Тренировочный день в меню — это +50 ккал и +7 г белка к дню отдыха.
+     Если силовая переехала на другой день недели, надбавка едет с ней, и в
+     шапке меню должны стоять настоящие цифры, а не те, под которые день
+     собирался. Та же правка есть в боте — цифры обязаны совпадать. */
+  function shiftSummary(summary, isTrain, menuForTrain){
+    if(isTrain === menuForTrain) return summary;
+    var sign = isTrain ? 1 : -1;
+    return summary
+      .replace(/(\d+)(?=\s*ккал)/, function(m){ return +m + sign * 50; })
+      .replace(/(?:белок )(\d+)/, function(m, n){ return 'белок ' + (+n + sign * 7); });
+  }
+
   function renderMenu(which){
     var box = document.getElementById('tlFood');
     var meta = document.getElementById('tlFoodMeta');
@@ -2377,16 +2392,34 @@ if('serviceWorker' in navigator){
     var ph = cyclePhase(d);
     var shift = ph ? ph.data.kcal_shift : 0;
 
-    meta.textContent = DAY_NAMES[d.getDay()] + ' · ' + day.summary +
+    // Раскладка еды по дням недели связана цепочкой готовки: вечером готовится
+    // завтрашнее, в воскресенье — сразу на два дня. Поэтому при переносе
+    // силовых меню остаётся на своём дне, а тренировочная надбавка (банан плюс
+    // порция белка) едет за расписанием. Те же правила, что в боте.
+    var isTrain = !!TRAINING_DAYS[d.getDay()];
+    var menuForTrain = !!day.training;
+
+    meta.textContent = DAY_NAMES[d.getDay()] + ' · ' +
+      shiftSummary(day.summary, isTrain, menuForTrain) +
       (shift ? ' + ' + shift + ' ккал (фаза цикла)' : '');
 
     var html = mealBlock('Завтрак · дома', day.breakfast) +
                mealBlock('Обед · с собой', day.lunch) +
                mealBlock('Ужин · дома', day.dinner);
 
-    if(day.extra && day.extra.length){
+    var extra = (day.extra || []).filter(function(x){ return x.indexOf('после тренировки') === -1; });
+    if(isTrain){
+      extra.push('Банан 120 г — в течение часа после тренировки');
+      if(!menuForTrain) extra.push('Добавка к обеду или ужину: +40 г белкового продукта — ' +
+        'рыба, птица или яйцо. Меню этого дня собрано под день без силовой, а силовая ' +
+        'стоит сегодня; в цифрах выше эта добавка уже учтена');
+    } else if(menuForTrain){
+      extra.push('Сегодня без силовой: банан после тренировки не нужен, ' +
+        'порцию белка оставляем обычной');
+    }
+    if(extra.length){
       html += '<div class="tl-meal"><p class="tl-meal-ttl">Плюс</p><ul class="tl-notes">';
-      day.extra.forEach(function(x){ html += '<li>' + esc(x) + '</li>'; });
+      extra.forEach(function(x){ html += '<li>' + esc(x) + '</li>'; });
       html += '</ul></div>';
     }
 
