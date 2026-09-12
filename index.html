@@ -548,6 +548,49 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 .tl-delta.down{color:var(--blue)}
 .tl-delta.up{color:var(--coral)}
 
+/* настроение: шкала 1–5, сводка по фазам цикла, полоски по дням */
+.tl-scale-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.tl-scale-row.first{border-top:0}
+.tl-scale-nm{flex:1;font-size:13.5px;line-height:1.3}
+.tl-scale-nm b{display:block;font-weight:600}
+.tl-scale-nm i{font-style:normal;font-size:11.5px;color:var(--muted)}
+.tl-star{color:var(--lav);font-weight:800}
+.tl-scale{display:flex;gap:5px;flex-shrink:0}
+.tl-scale button{width:33px;height:33px;border:1.5px solid var(--line);background:var(--card);
+  border-radius:11px;font:inherit;font-size:13px;font-weight:650;color:var(--muted);
+  padding:0;cursor:pointer;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
+.tl-scale button:active{transform:scale(.94)}
+.tl-scale button[aria-pressed="true"]{border-color:var(--navy);color:var(--navy)}
+.tl-scale button[aria-pressed="true"][data-v="1"],
+.tl-scale button[aria-pressed="true"][data-v="2"]{background:var(--gold-soft)}
+.tl-scale button[aria-pressed="true"][data-v="3"]{background:var(--lav-soft)}
+.tl-scale button[aria-pressed="true"][data-v="4"],
+.tl-scale button[aria-pressed="true"][data-v="5"]{background:var(--coral-soft)}
+.tl-phases{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px}
+.tl-phase{background:var(--card-soft);border-radius:16px;padding:11px 12px}
+.tl-phase span{display:block;font-size:11px;color:var(--muted);font-weight:650;line-height:1.25}
+.tl-phase b{display:block;font-size:21px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums}
+.tl-phase i{font-style:normal;font-size:11px;color:var(--muted)}
+.tl-bars{display:flex;align-items:flex-end;gap:2px;height:88px;margin-top:16px;overflow-x:auto;padding-bottom:2px}
+.tl-bars div{flex:0 0 9px;border-radius:3px 3px 0 0;background:var(--lav-soft);min-height:3px}
+.tl-bars div.pre{background:var(--coral)}
+.tl-bars div.mens{background:var(--line)}
+.tl-bars div.clean{background:var(--blue-soft)}
+.tl-legend{display:flex;gap:13px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:9px}
+.tl-legend span{display:flex;align-items:center;gap:5px}
+.tl-legend i{width:10px;height:10px;border-radius:3px;display:block}
+/* На телефоне название и шкала в одну строку не влезают: длинные подписи
+   переносятся и выдавливают пятёрку за край. Складываем в два яруса —
+   заодно кнопки становятся шире, и попасть по ним пальцем проще. */
+@media(max-width:480px){
+  .tl-scale-row{flex-direction:column;align-items:stretch;gap:8px;padding:12px 0}
+  .tl-scale-nm b{display:inline}
+  .tl-scale-nm i{display:block;margin-top:2px}
+  .tl-scale{width:100%}
+  .tl-scale button{flex:1 1 0;width:auto;height:38px}
+}
+@media(max-width:380px){ .tl-phases{grid-template-columns:1fr} }
+
 @media(max-width:380px){
   .tl-ex-more-pad{padding-left:15px}
   .tl-grid{grid-template-columns:1fr}
@@ -598,6 +641,7 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
         <a href="#breath">Дыхание</a>
         <a href="#food">Питание</a>
         <a href="#body">Замеры</a>
+        <a href="#mood">Настроение</a>
         <a href="#sync">Синхронизация</a>
       </div>
     </div>
@@ -1298,6 +1342,43 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
     </div>
   </section>
 
+  <!-- 13 MOOD -->
+  <section class="section reveal" id="mood">
+    <div class="sec-head"><div class="sec-num acc-lav">13</div><h2 class="disp">Настроение и цикл</h2></div>
+    <div class="card">
+      <div class="notif" style="background:var(--card-soft)">
+        <p class="txt"><b>Зачем это нужно.</b> Настроение перед месячными и настроение вообще — две разные истории, и лечатся они по-разному. Разделить их можно только измерением: отмечаешь каждый вечер, а раздел сам сравнивает предменструальные дни с чистым окном в начале цикла. Через два цикла ответ будет виден на графике, а не на ощущениях. Всё остаётся на этом устройстве.</p>
+      </div>
+
+      <h3 class="tl-h3">Запись за день</h3>
+      <p class="tl-hint">Вечером, около минуты. День цикла подставляется сам — из отметок в разделе «Замеры».</p>
+      <div class="tl-grid">
+        <label class="tl-field"><span>Дата</span><input id="mdDate" type="date"></label>
+        <label class="tl-field"><span>Сон, часов</span><input id="mdSleep" type="number" step="0.5" min="0" max="16" inputmode="decimal"></label>
+        <label class="tl-field"><span>Доза препарата</span><input id="mdDose" type="text" placeholder="напр. 50 мг"></label>
+        <label class="tl-field"><span>День цикла</span><input id="mdCd" type="text" readonly></label>
+      </div>
+
+      <h3 class="tl-h3">Симптомы</h3>
+      <p class="tl-hint">1 — нет, 5 — очень сильно. Помеченные <span class="tl-star">★</span> — ключевые: по ним в первую очередь и смотрят, есть ли циклическая привязка.</p>
+      <div id="tlMoodItems"></div>
+
+      <div class="tl-grid" style="margin-top:14px">
+        <label class="tl-field"><span>Побочки</span><input id="mdSe" type="text" placeholder="тошнота, сонливость…"></label>
+        <label class="tl-field"><span>Заметка</span><input id="mdNote" type="text" placeholder="что было за день"></label>
+      </div>
+      <button class="tl-btn tl-btn-wide" id="tlMoodSave" type="button">Сохранить запись</button>
+      <p class="tl-saved" id="tlMoodSaved" hidden>сохранено ✓</p>
+
+      <h3 class="tl-h3">Что получается</h3>
+      <div id="tlMoodSummary"></div>
+
+      <div id="tlMoodHistory" class="tl-history"></div>
+      <button class="tl-btn tl-btn-wide" id="tlMoodCopy" type="button">Скопировать сводку для врача</button>
+      <p class="tl-saved" id="tlMoodCopied" hidden>скопировано ✓</p>
+    </div>
+  </section>
+
   
 
 
@@ -1321,7 +1402,7 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
   </section>
 
 <section class="section reveal" id="sync">
-    <div class="sec-head"><div class="sec-num acc-blue">13</div><h2 class="disp">Синхронизация</h2></div>
+    <div class="sec-head"><div class="sec-num acc-blue">14</div><h2 class="disp">Синхронизация</h2></div>
     <div class="card">
 <div class="trk">
       <div class="trk-head"><span class="trk-tag" style="background:#FFE0DA;color:#C4260F">Синхронизация · Яндекс.Диск</span></div>
@@ -1926,7 +2007,8 @@ if('serviceWorker' in navigator){
   var DATA = {};
   var LS = {
     start:'tl_start', place:'tl_place', periods:'tl_periods',
-    measures:'tl_measures', done:'tl_done_', shop:'tl_shop_'
+    measures:'tl_measures', done:'tl_done_', shop:'tl_shop_',
+    mood:'tl_mood'
   };
   var DEFAULT_START = '2026-09-02';       // начало программы
   // Прошлые даты старта. Если в памяти лежит одна из них — это не выбор Юли,
@@ -2569,6 +2651,252 @@ if('serviceWorker' in navigator){
       (left >= 0 ? '<br><br>Следующие ожидаются через ' + left + ' дн.' : '') + '</div>';
   }
 
+  /* ── настроение ──
+     Запись: {date, s:[10 оценок 0–5], sleep, dose, se, note}.
+     День цикла намеренно не храним: он считается из отметок месячных, поэтому
+     поправленная задним числом дата цикла пересчитывает всю историю сразу. */
+  var MOOD_ITEMS = [
+    ['Подавленность, тоска', '', 1],
+    ['Перепады настроения, слезливость', 'накрывает вдруг, легко плакать', 1],
+    ['Раздражительность, злость', '', 1],
+    ['Тревога, напряжение', '', 1],
+    ['Безысходность, чувство вины', '', 0],
+    ['Усталость, упадок сил', '', 0],
+    ['Потеря интереса к делам', 'хобби не радуют', 0],
+    ['Трудно сосредоточиться', 'память, внимание', 0],
+    ['Переедание, тяга к еде', '', 0],
+    ['Телесное', 'грудь, вздутие, голова', 0]
+  ];
+  var MOOD_MAX = MOOD_ITEMS.length * 5;
+  // Расписание выхода на дозу — только для подсказки в поле. Поле редактируемое:
+  // если врач поменяет схему, достаточно вписать своё, история не пострадает.
+  var DOSE_START = '2026-09-12';
+  var DOSE_PLAN = ['25 мг', '50 мг', '75 мг', '100 мг'];
+  var moodCur = [];
+
+  function suggestDose(d){
+    var w = Math.floor((d - parseISO(DOSE_START)) / 604800000);
+    if(w < 0) return '';
+    return DOSE_PLAN[w] || DOSE_PLAN[DOSE_PLAN.length - 1];
+  }
+
+  /* День цикла для любой даты, включая прошлые: считаем от ближайшей
+     предыдущей отметки месячных. Штатный cycleDay() здесь не годится — он
+     считает от последней отметки и для всего, что раньше неё, отдаёт null,
+     а дневнику нужна вся история, чтобы сравнивать циклы между собой.
+     Заодно не зависит от cycle.json: запись работает и без интернета. */
+  function moodCycleDay(d){
+    var ps = periods(), best = null;
+    for(var i = 0; i < ps.length; i++){
+      var p = parseISO(ps[i]);
+      if(p <= d && (best === null || p > best)) best = p;
+    }
+    if(best === null) return null;
+    return Math.floor((d - best) / 86400000) + 1;
+  }
+
+  /* Предменструальный день — один из 5 перед фактическим началом месячных.
+     Считается назад от реальной отметки, поэтому нерегулярный цикл не мешает.
+     Чистое окно — 6–12-й день цикла: месячные закончились, а до следующей
+     лютеиновой фазы далеко; при ПМДР симптомов там быть не должно.
+     Окна не пересекаются: 1–5 месячные, 6–12 чистое, последние 5 — предменструальные.
+     Дни незакрытого цикла остаются без метки: размечать их пока нечем. */
+  function moodKind(rec){
+    var d = parseISO(rec.date), ps = periods(), i, gap;
+    for(i = 0; i < ps.length; i++){
+      gap = Math.round((parseISO(ps[i]) - d) / 86400000);
+      if(gap >= 1 && gap <= 5) return 'pre';
+    }
+    var cd = moodCycleDay(d);
+    if(!cd) return '';
+    if(cd <= 5) return 'mens';
+    return (cd <= 12) ? 'clean' : '';
+  }
+
+  function moodRows(){
+    document.getElementById('tlMoodItems').innerHTML = MOOD_ITEMS.map(function(it, i){
+      var scale = '';
+      for(var v = 1; v <= 5; v++){
+        scale += '<button type="button" data-mood="' + i + '" data-v="' + v +
+                 '" aria-pressed="false">' + v + '</button>';
+      }
+      return '<div class="tl-scale-row' + (i ? '' : ' first') + '">' +
+        '<div class="tl-scale-nm"><b>' + (it[2] ? '<span class="tl-star">★</span> ' : '') +
+        esc(it[0]) + '</b>' + (it[1] ? '<i>' + esc(it[1]) + '</i>' : '') + '</div>' +
+        '<div class="tl-scale">' + scale + '</div></div>';
+    }).join('');
+  }
+
+  function paintMood(){
+    document.querySelectorAll('#tlMoodItems button[data-mood]').forEach(function(b){
+      b.setAttribute('aria-pressed', String(moodCur[+b.dataset.mood] === +b.dataset.v));
+    });
+  }
+
+  function fillMood(dateIso){
+    var rec = get(LS.mood, []).filter(function(r){ return r.date === dateIso; })[0];
+    moodCur = rec && rec.s ? rec.s.slice() : [];
+    document.getElementById('mdSleep').value = rec && rec.sleep != null ? rec.sleep : '';
+    document.getElementById('mdSe').value   = rec ? (rec.se || '') : '';
+    document.getElementById('mdNote').value = rec ? (rec.note || '') : '';
+    document.getElementById('mdDose').value = rec && rec.dose ? rec.dose : suggestDose(parseISO(dateIso));
+    var cd = moodCycleDay(parseISO(dateIso));
+    document.getElementById('mdCd').value = cd ? String(cd) : 'нет отметки цикла';
+    paintMood();
+  }
+
+  function saveMood(){
+    var d = document.getElementById('mdDate').value;
+    if(!d) return;
+    if(!moodCur.some(function(v){ return v; })) return;   // пустую запись не сохраняем
+
+    var sleep = document.getElementById('mdSleep').value;
+    var rec = {
+      date: d,
+      s: MOOD_ITEMS.map(function(_, i){ return moodCur[i] || 0; }),
+      sleep: sleep !== '' ? parseFloat(sleep) : null,
+      dose: document.getElementById('mdDose').value.trim(),
+      se: document.getElementById('mdSe').value.trim(),
+      note: document.getElementById('mdNote').value.trim()
+    };
+    var all = get(LS.mood, []).filter(function(r){ return r.date !== d; });
+    all.push(rec);
+    all.sort(function(a, b){ return a.date < b.date ? -1 : 1; });
+    set(LS.mood, all);
+
+    var flag = document.getElementById('tlMoodSaved');
+    flag.hidden = false;
+    setTimeout(function(){ flag.hidden = true; }, 2200);
+    renderMood();
+  }
+
+  function moodStats(){
+    var pre = [], cln = [];
+    get(LS.mood, []).forEach(function(r){
+      var sum = r.s.reduce(function(a, b){ return a + b; }, 0);
+      var kind = moodKind(r);
+      if(kind === 'pre') pre.push(sum);
+      else if(kind === 'clean') cln.push(sum);
+    });
+    var avg = function(a){ return a.length ? a.reduce(function(x, y){ return x + y; }, 0) / a.length : null; };
+    var mp = avg(pre), mc = avg(cln);
+    return {pre: pre, clean: cln, mp: mp, mc: mc,
+            diff: (mp !== null && mc) ? Math.round((mp / mc - 1) * 100) : null};
+  }
+
+  function renderMood(){
+    var all = get(LS.mood, []);
+    var box = document.getElementById('tlMoodSummary');
+    var hist = document.getElementById('tlMoodHistory');
+    if(!all.length){
+      box.innerHTML = '<p class="tl-hint">Пока пусто. Первая запись — точка отсчёта: без неё через месяц не с чем сравнивать, а память подгоняет прошлое под сегодняшнее настроение.</p>';
+      hist.innerHTML = '';
+      return;
+    }
+
+    var st = moodStats(), bars = '';
+    all.slice(-70).forEach(function(r){
+      var sum = r.s.reduce(function(a, b){ return a + b; }, 0);
+      bars += '<div class="' + moodKind(r) + '" style="height:' +
+              Math.max(3, Math.round(sum / MOOD_MAX * 84)) + 'px" title="' +
+              esc(r.date.slice(8) + '.' + r.date.slice(5, 7) + ' · ' + sum) + '"></div>';
+    });
+
+    var strong = st.diff !== null && st.diff >= 30;
+    box.innerHTML =
+      '<div class="tl-phases">' +
+        '<div class="tl-phase"><span>Чистое окно<br>день цикла 6–12</span><b>' +
+          (st.mc === null ? '—' : st.mc.toFixed(1)) + '</b><i>' + st.clean.length + ' дн.</i></div>' +
+        '<div class="tl-phase"><span>5 дней<br>перед месячными</span><b>' +
+          (st.mp === null ? '—' : st.mp.toFixed(1)) + '</b><i>' + st.pre.length + ' дн.</i></div>' +
+        '<div class="tl-phase"><span>Разница</span><b style="color:' +
+          (strong ? 'var(--coral)' : 'var(--ink)') + '">' +
+          (st.diff === null ? '—' : (st.diff > 0 ? '+' : '') + st.diff + '%') + '</b><i>' +
+          (st.diff === null ? 'ждём закрытый цикл' : (strong ? 'заметный паттерн' : 'пока слабо')) +
+        '</i></div>' +
+      '</div>' +
+      '<div class="tl-bars">' + bars + '</div>' +
+      '<div class="tl-legend">' +
+        '<span><i style="background:var(--coral)"></i>перед месячными</span>' +
+        '<span><i style="background:var(--blue-soft)"></i>чистое окно</span>' +
+        '<span><i style="background:var(--line)"></i>месячные</span>' +
+        '<span><i style="background:var(--lav-soft)"></i>остальные дни</span>' +
+      '</div>' +
+      '<p class="tl-hint" style="margin-top:12px">' +
+        (st.diff === null
+          ? 'Оранжевые дни появятся, когда отметишь следующие месячные: предменструальные пять дней считаются назад от их даты.'
+          : (strong
+            ? 'Столбики растут к концу цикла и обрываются с месячными — это и есть циклическая привязка. Такую картинку имеет смысл показать врачу.'
+            : 'Пока разница между фазами небольшая. Это тоже ответ: значит, дело больше в общем фоне, чем в цикле.')) +
+      '</p>';
+
+    var rows = all.slice(-10).reverse().map(function(r){
+      var sum = r.s.reduce(function(a, b){ return a + b; }, 0);
+      var cd = moodCycleDay(parseISO(r.date));
+      var k = moodKind(r);
+      var mark = k === 'pre' ? '● перед м.' : k === 'mens' ? '○ месячные' : k === 'clean' ? '· чистое' : '';
+      return '<tr><td>' + r.date.slice(8) + '.' + r.date.slice(5, 7) + '</td><td>' +
+        (cd || '—') + '</td><td>' + esc(r.dose || '—') + '</td><td>' + sum + '</td><td>' +
+        esc(mark) + '</td></tr>';
+    }).join('');
+    hist.innerHTML = '<table><thead><tr><th>Дата</th><th>Д.ц.</th><th>Доза</th><th>Балл</th><th></th></tr></thead><tbody>' +
+      rows + '</tbody></table><p class="tl-hint" style="margin-top:10px">Балл — сумма по всем десяти пунктам, от 10 до ' +
+      MOOD_MAX + '. Чем выше, тем хуже день.</p>';
+  }
+
+  function moodReport(){
+    var all = get(LS.mood, []), st = moodStats();
+    var lines = ['Дневник настроения — сводка', 'Записей: ' + all.length];
+    if(all.length) lines.push('Период: ' + all[0].date + ' — ' + all[all.length - 1].date);
+    lines.push('');
+    lines.push('Средний балл (сумма 10 пунктов, макс ' + MOOD_MAX + '):');
+    lines.push('  чистое окно, д.ц. 6–12: ' + (st.mc === null ? 'нет данных' : st.mc.toFixed(1) + ' (' + st.clean.length + ' дн.)'));
+    lines.push('  5 дней перед месячными: ' + (st.mp === null ? 'нет данных' : st.mp.toFixed(1) + ' (' + st.pre.length + ' дн.)'));
+    if(st.diff !== null) lines.push('  разница: ' + (st.diff > 0 ? '+' : '') + st.diff + '%');
+    lines.push('');
+    lines.push('Ключевые симптомы (★) в предменструальные дни:');
+    MOOD_ITEMS.forEach(function(it, i){
+      if(!it[2]) return;
+      var vals = all.filter(function(r){ return moodKind(r) === 'pre'; }).map(function(r){ return r.s[i]; });
+      var m = vals.length ? (vals.reduce(function(a, b){ return a + b; }, 0) / vals.length).toFixed(1) : '—';
+      lines.push('  ' + it[0] + ': ' + m);
+    });
+    lines.push('');
+    lines.push('По дням:');
+    all.forEach(function(r){
+      var cd = moodCycleDay(parseISO(r.date));
+      lines.push('  ' + r.date + ' · д.ц. ' + (cd || '?') + ' · ' + (r.dose || '—') +
+                 ' · балл ' + r.s.reduce(function(a, b){ return a + b; }, 0) +
+                 (r.se ? ' · побочки: ' + r.se : ''));
+    });
+    return lines.join('\n');
+  }
+
+  function copyMood(){
+    var text = moodReport();
+    var done = function(){
+      var f = document.getElementById('tlMoodCopied');
+      f.hidden = false;
+      setTimeout(function(){ f.hidden = true; }, 2200);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
+    }else{
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+
   /* ── события ── */
   function bind(){
     document.querySelectorAll('[data-place]').forEach(function(btn){
@@ -2672,6 +3000,8 @@ if('serviceWorker' in navigator){
       // renderWorkout сам решит, показывать ли плашку цикла: она нужна
       // только если сейчас открыт сегодняшний день
       renderCycleInfo(); renderWorkout(); renderMenu('today');
+      // новая дата месячных задним числом размечает предменструальные дни
+      renderMood(); fillMood(document.getElementById('mdDate').value);
       document.querySelectorAll('[data-menu]').forEach(function(b,i){ b.classList.toggle('act', i===0); });
     });
 
@@ -2683,6 +3013,20 @@ if('serviceWorker' in navigator){
       set(LS.start, v);
       renderWorkout(); renderMenu('today');
     });
+
+    /* настроение */
+    document.getElementById('tlMoodItems').addEventListener('click', function(e){
+      var b = e.target.closest('button[data-mood]');
+      if(!b) return;
+      var i = +b.dataset.mood, v = +b.dataset.v;
+      moodCur[i] = moodCur[i] === v ? 0 : v;    // повторное нажатие снимает оценку
+      paintMood();
+    });
+    document.getElementById('mdDate').addEventListener('change', function(){
+      fillMood(this.value);
+    });
+    document.getElementById('tlMoodSave').addEventListener('click', saveMood);
+    document.getElementById('tlMoodCopy').addEventListener('click', copyMood);
   }
 
   /* Появление секций.
@@ -2766,8 +3110,8 @@ if('serviceWorker' in navigator){
         return;
       }
 
-      // замеры: одна запись на дату, свежая заменяет старую
-      if(k === 'tl_measures' && mineRaw){
+      // замеры и настроение: одна запись на дату, свежая заменяет старую
+      if((k === 'tl_measures' || k === 'tl_mood') && mineRaw){
         try{
           var byDate = {};
           JSON.parse(mineRaw).forEach(function(r){ byDate[r.date] = r; });
@@ -2799,12 +3143,21 @@ if('serviceWorker' in navigator){
   window.tlRefresh = function(){
     try{
       renderWorkout(); renderMenu('today'); renderCycleInfo(); renderHistory();
+      renderMood(); fillMood(document.getElementById('mdDate').value);
     }catch(e){}
   };
 
   /* ── старт ── */
   function boot(){
     revealSections();
+
+    // Дневник настроения не зависит от справочников: поднимаем его сразу, чтобы
+    // запись можно было сделать даже когда данные не загрузились.
+    moodRows();
+    document.getElementById('mdDate').value = iso(today());
+    fillMood(iso(today()));
+    renderMood();
+
     var files = ['exercises','workouts','breathing','menu','shopping','cycle'];
     Promise.all(files.map(function(name){
       return fetch('data/' + name + '.json').then(function(r){ return r.json(); });
@@ -2824,6 +3177,9 @@ if('serviceWorker' in navigator){
       renderMenu('today');
       renderCycleInfo();
       renderHistory();
+      // справочник цикла подъехал — теперь день цикла есть чем посчитать
+      fillMood(document.getElementById('mdDate').value);
+      renderMood();
     }).catch(function(err){
       document.querySelectorAll('#tlWorkout,#tlExercises,#tlBreath,#tlFood').forEach(function(el){
         el.innerHTML = '<p class="tl-load">Не удалось загрузить данные. Проверь интернет и обнови страницу.</p>';
