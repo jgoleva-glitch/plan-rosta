@@ -2782,6 +2782,7 @@ if('serviceWorker' in navigator){
   }
 
   function saveMood(silent){
+    silent = silent === true;   // защита от случайно переданного объекта события
     var d = document.getElementById('mdDate').value;
     if(!d) return;
     var sleep = document.getElementById('mdSleep').value;
@@ -3099,7 +3100,9 @@ if('serviceWorker' in navigator){
         saveMood(true);
       });
     });
-    document.getElementById('tlMoodSave').addEventListener('click', saveMood);
+    // Нельзя вешать saveMood напрямую: в первый аргумент прилетит объект
+    // события, и «тихое» сохранение включится само — подтверждение пропадёт.
+    document.getElementById('tlMoodSave').addEventListener('click', function(){ saveMood(); });
     document.getElementById('tlMoodCopy').addEventListener('click', copyMood);
   }
 
