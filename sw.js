@@ -1,4 +1,4 @@
-const CACHE_NAME = 'plan-rosta-v4';
+const CACHE_NAME = 'plan-rosta-v5';
 const ASSETS = [
   './',
   './index.html',

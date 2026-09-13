@@ -548,6 +548,21 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 .tl-delta.down{color:var(--blue)}
 .tl-delta.up{color:var(--coral)}
 
+/* приём таблетки: отмечается каждый день, поэтому стоит первым и крупно */
+.tl-pill{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--card-soft);
+  border-radius:16px;padding:13px 15px;margin-bottom:14px}
+.tl-pill-nm{flex:1;min-width:150px;font-size:13.5px;line-height:1.3}
+.tl-pill-nm b{display:block;font-weight:650}
+.tl-pill-nm i{font-style:normal;font-size:11.5px;color:var(--muted)}
+.tl-pill-btns{display:flex;gap:7px}
+.tl-pill-btns button{border:1.5px solid var(--line);background:var(--card);border-radius:12px;
+  font:inherit;font-size:13px;font-weight:650;color:var(--muted);padding:9px 15px;cursor:pointer;
+  -webkit-appearance:none;-webkit-tap-highlight-color:transparent}
+.tl-pill-btns button:active{transform:scale(.96)}
+.tl-pill-btns button[aria-pressed="true"][data-pill="y"]{background:var(--coral);border-color:var(--coral);color:#fff}
+.tl-pill-btns button[aria-pressed="true"][data-pill="n"]{background:var(--gold-soft);border-color:var(--gold);color:var(--ink)}
+@media(max-width:420px){.tl-pill-btns{width:100%}.tl-pill-btns button{flex:1}}
+
 /* настроение: шкала 1–5, сводка по фазам цикла, полоски по дням */
 .tl-scale-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
 .tl-scale-row.first{border-top:0}
@@ -1352,6 +1367,14 @@ input[type=password]:focus{outline:none;border-color:var(--navy)}
 
       <h3 class="tl-h3">Запись за день</h3>
       <p class="tl-hint">Вечером, около минуты. День цикла подставляется сам — из отметок в разделе «Замеры».</p>
+      <div class="tl-pill">
+        <div class="tl-pill-nm"><b>Таблетка</b><i>отмечай каждый день, даже когда дневник не заполняешь</i></div>
+        <div class="tl-pill-btns">
+          <button type="button" id="mdPillY" data-pill="y">Выпила</button>
+          <button type="button" id="mdPillN" data-pill="n">Пропустила</button>
+        </div>
+      </div>
+
       <div class="tl-grid">
         <label class="tl-field"><span>Дата</span><input id="mdDate" type="date"></label>
         <label class="tl-field"><span>Сон, часов</span><input id="mdSleep" type="number" step="0.5" min="0" max="16" inputmode="decimal"></label>
@@ -2673,6 +2696,7 @@ if('serviceWorker' in navigator){
   var DOSE_START = '2026-09-12';
   var DOSE_PLAN = ['25 мг', '50 мг', '75 мг', '100 мг'];
   var moodCur = [];
+  var pillCur = '';        // '' не отмечено | 'y' выпила | 'n' пропустила
 
   function suggestDose(d){
     var w = Math.floor((d - parseISO(DOSE_START)) / 604800000);
@@ -2731,6 +2755,17 @@ if('serviceWorker' in navigator){
     document.querySelectorAll('#tlMoodItems button[data-mood]').forEach(function(b){
       b.setAttribute('aria-pressed', String(moodCur[+b.dataset.mood] === +b.dataset.v));
     });
+    document.querySelectorAll('.tl-pill-btns button[data-pill]').forEach(function(b){
+      b.setAttribute('aria-pressed', String(pillCur === b.dataset.pill));
+    });
+  }
+
+  /* В записи может не быть ни одной оценки: отметка таблетки сохраняется сама
+     по себе, без дневника. Такие дни не должны попадать в средние по фазам и
+     в график — иначе день, когда Юля просто отметила приём, засчитается как
+     день с нулевыми симптомами и занизит среднее. */
+  function hasMood(rec){
+    return !!(rec.s && rec.s.some(function(v){ return v; }));
   }
 
   function fillMood(dateIso){
@@ -2740,16 +2775,15 @@ if('serviceWorker' in navigator){
     document.getElementById('mdSe').value   = rec ? (rec.se || '') : '';
     document.getElementById('mdNote').value = rec ? (rec.note || '') : '';
     document.getElementById('mdDose').value = rec && rec.dose ? rec.dose : suggestDose(parseISO(dateIso));
+    pillCur = rec && rec.pill ? rec.pill : '';
     var cd = moodCycleDay(parseISO(dateIso));
     document.getElementById('mdCd').value = cd ? String(cd) : 'нет отметки цикла';
     paintMood();
   }
 
-  function saveMood(){
+  function saveMood(silent){
     var d = document.getElementById('mdDate').value;
     if(!d) return;
-    if(!moodCur.some(function(v){ return v; })) return;   // пустую запись не сохраняем
-
     var sleep = document.getElementById('mdSleep').value;
     var rec = {
       date: d,
@@ -2759,20 +2793,34 @@ if('serviceWorker' in navigator){
       se: document.getElementById('mdSe').value.trim(),
       note: document.getElementById('mdNote').value.trim()
     };
+    if(pillCur) rec.pill = pillCur;
+
+    // Отметки таблетки достаточно, чтобы запись появилась: приём важно
+    // фиксировать каждый день, даже когда до дневника руки не дошли. А если
+    // не осталось ничего — запись убираем целиком, иначе повторное нажатие
+    // по кнопке не снимало бы отметку.
+    var keep = moodCur.some(function(v){ return v; }) || pillCur || rec.se || rec.note;
     var all = get(LS.mood, []).filter(function(r){ return r.date !== d; });
-    all.push(rec);
-    all.sort(function(a, b){ return a.date < b.date ? -1 : 1; });
+    if(keep){
+      all.push(rec);
+      all.sort(function(a, b){ return a.date < b.date ? -1 : 1; });
+    }
     set(LS.mood, all);
 
-    var flag = document.getElementById('tlMoodSaved');
-    flag.hidden = false;
-    setTimeout(function(){ flag.hidden = true; }, 2200);
+    if(!silent){
+      var flag = document.getElementById('tlMoodSaved');
+      flag.hidden = false;
+      setTimeout(function(){ flag.hidden = true; }, 2200);
+    }
     renderMood();
   }
 
   function moodStats(){
-    var pre = [], cln = [];
+    var pre = [], cln = [], taken = 0, missed = 0;
     get(LS.mood, []).forEach(function(r){
+      if(r.pill === 'y') taken++;
+      else if(r.pill === 'n') missed++;
+      if(!hasMood(r)) return;
       var sum = r.s.reduce(function(a, b){ return a + b; }, 0);
       var kind = moodKind(r);
       if(kind === 'pre') pre.push(sum);
@@ -2780,7 +2828,7 @@ if('serviceWorker' in navigator){
     });
     var avg = function(a){ return a.length ? a.reduce(function(x, y){ return x + y; }, 0) / a.length : null; };
     var mp = avg(pre), mc = avg(cln);
-    return {pre: pre, clean: cln, mp: mp, mc: mc,
+    return {pre: pre, clean: cln, mp: mp, mc: mc, taken: taken, missed: missed,
             diff: (mp !== null && mc) ? Math.round((mp / mc - 1) * 100) : null};
   }
 
@@ -2795,7 +2843,7 @@ if('serviceWorker' in navigator){
     }
 
     var st = moodStats(), bars = '';
-    all.slice(-70).forEach(function(r){
+    all.slice(-70).filter(hasMood).forEach(function(r){
       var sum = r.s.reduce(function(a, b){ return a + b; }, 0);
       bars += '<div class="' + moodKind(r) + '" style="height:' +
               Math.max(3, Math.round(sum / MOOD_MAX * 84)) + 'px" title="' +
@@ -2815,6 +2863,13 @@ if('serviceWorker' in navigator){
           (st.diff === null ? 'ждём закрытый цикл' : (strong ? 'заметный паттерн' : 'пока слабо')) +
         '</i></div>' +
       '</div>' +
+      (st.taken + st.missed
+        ? '<p class="tl-hint" style="margin-top:12px"><b>Таблетка:</b> отмечено ' +
+          (st.taken + st.missed) + ' дн. — принято ' + st.taken +
+          (st.missed ? ', пропущено ' + st.missed : '') +
+          (st.missed ? '. Пропуски отмечены не в укор: по ним видно, совпадает ли просадка с пропущенным днём.' : '') +
+          '</p>'
+        : '') +
       '<div class="tl-bars">' + bars + '</div>' +
       '<div class="tl-legend">' +
         '<span><i style="background:var(--coral)"></i>перед месячными</span>' +
@@ -2831,17 +2886,19 @@ if('serviceWorker' in navigator){
       '</p>';
 
     var rows = all.slice(-10).reverse().map(function(r){
-      var sum = r.s.reduce(function(a, b){ return a + b; }, 0);
       var cd = moodCycleDay(parseISO(r.date));
       var k = moodKind(r);
       var mark = k === 'pre' ? '● перед м.' : k === 'mens' ? '○ месячные' : k === 'clean' ? '· чистое' : '';
+      var pill = r.pill === 'y' ? '✓' : r.pill === 'n' ? '✗' : '—';
+      // в день без дневника балла нет: прочерк честнее нуля
+      var score = hasMood(r) ? r.s.reduce(function(a, b){ return a + b; }, 0) : '—';
       return '<tr><td>' + r.date.slice(8) + '.' + r.date.slice(5, 7) + '</td><td>' +
-        (cd || '—') + '</td><td>' + esc(r.dose || '—') + '</td><td>' + sum + '</td><td>' +
-        esc(mark) + '</td></tr>';
+        (cd || '—') + '</td><td>' + pill + '</td><td>' + esc(r.dose || '—') + '</td><td>' +
+        score + '</td><td>' + esc(mark) + '</td></tr>';
     }).join('');
-    hist.innerHTML = '<table><thead><tr><th>Дата</th><th>Д.ц.</th><th>Доза</th><th>Балл</th><th></th></tr></thead><tbody>' +
+    hist.innerHTML = '<table><thead><tr><th>Дата</th><th>Д.ц.</th><th>Табл.</th><th>Доза</th><th>Балл</th><th></th></tr></thead><tbody>' +
       rows + '</tbody></table><p class="tl-hint" style="margin-top:10px">Балл — сумма по всем десяти пунктам, от 10 до ' +
-      MOOD_MAX + '. Чем выше, тем хуже день.</p>';
+      MOOD_MAX + '. Чем выше, тем хуже день. Прочерк — дневник в этот день не заполнялся.</p>';
   }
 
   function moodReport(){
@@ -2853,11 +2910,17 @@ if('serviceWorker' in navigator){
     lines.push('  чистое окно, д.ц. 6–12: ' + (st.mc === null ? 'нет данных' : st.mc.toFixed(1) + ' (' + st.clean.length + ' дн.)'));
     lines.push('  5 дней перед месячными: ' + (st.mp === null ? 'нет данных' : st.mp.toFixed(1) + ' (' + st.pre.length + ' дн.)'));
     if(st.diff !== null) lines.push('  разница: ' + (st.diff > 0 ? '+' : '') + st.diff + '%');
+    if(st.taken + st.missed){
+      lines.push('');
+      lines.push('Приём препарата: отмечено ' + (st.taken + st.missed) +
+                 ' дн., принято ' + st.taken + ', пропущено ' + st.missed);
+    }
     lines.push('');
     lines.push('Ключевые симптомы (★) в предменструальные дни:');
     MOOD_ITEMS.forEach(function(it, i){
       if(!it[2]) return;
-      var vals = all.filter(function(r){ return moodKind(r) === 'pre'; }).map(function(r){ return r.s[i]; });
+      var vals = all.filter(function(r){ return hasMood(r) && moodKind(r) === 'pre'; })
+                    .map(function(r){ return r.s[i]; });
       var m = vals.length ? (vals.reduce(function(a, b){ return a + b; }, 0) / vals.length).toFixed(1) : '—';
       lines.push('  ' + it[0] + ': ' + m);
     });
@@ -2865,8 +2928,10 @@ if('serviceWorker' in navigator){
     lines.push('По дням:');
     all.forEach(function(r){
       var cd = moodCycleDay(parseISO(r.date));
-      lines.push('  ' + r.date + ' · д.ц. ' + (cd || '?') + ' · ' + (r.dose || '—') +
-                 ' · балл ' + r.s.reduce(function(a, b){ return a + b; }, 0) +
+      lines.push('  ' + r.date + ' · д.ц. ' + (cd || '?') +
+                 ' · ' + (r.pill === 'y' ? 'принято' : r.pill === 'n' ? 'ПРОПУСК' : 'не отмечено') +
+                 ' ' + (r.dose || '—') +
+                 ' · балл ' + (hasMood(r) ? r.s.reduce(function(a, b){ return a + b; }, 0) : '—') +
                  (r.se ? ' · побочки: ' + r.se : ''));
     });
     return lines.join('\n');
@@ -3024,6 +3089,15 @@ if('serviceWorker' in navigator){
     });
     document.getElementById('mdDate').addEventListener('change', function(){
       fillMood(this.value);
+    });
+    // Отметка таблетки сохраняется сразу: она нужна каждый день, и лишний шаг
+    // «не забудь нажать Сохранить» — верный способ получить дыры в истории.
+    document.querySelectorAll('.tl-pill-btns button[data-pill]').forEach(function(b){
+      b.addEventListener('click', function(){
+        pillCur = pillCur === b.dataset.pill ? '' : b.dataset.pill;
+        paintMood();
+        saveMood(true);
+      });
     });
     document.getElementById('tlMoodSave').addEventListener('click', saveMood);
     document.getElementById('tlMoodCopy').addEventListener('click', copyMood);
